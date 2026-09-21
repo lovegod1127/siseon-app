@@ -778,7 +778,7 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
   }
   if (isStandalone) { var st = $('introSteps'); if (st) st.style.display = 'none'; }
   var close = function(){ el.classList.add('hide'); try{ localStorage.setItem('introSeen','1'); }catch(e){} };
-  if (seen) { el.classList.add('brief'); setTimeout(close, 1000); }
+  if (seen) { el.classList.add('brief'); setTimeout(close, 1500); }
   else { $('introGo').onclick = close; }
 })();
 /* 홈 화면 추가 / 카카오톡 브라우저 안내 */
