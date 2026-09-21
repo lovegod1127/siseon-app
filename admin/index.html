@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시선 관리자</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text&family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#2b2a26; --sub:#8a857a; --accent:#2F4A45; --line:#e6e0d4; --bg:#F2EFE8; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:var(--ink);line-height:1.6}
+  header{background:#fff;border-bottom:1px solid var(--line);padding:14px 22px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20}
+  header h1{font-family:'Gowun Batang',serif;font-size:19px;font-weight:700}
+  header h1 em{font-style:normal;color:var(--accent)}
+  header .who{font-size:13px;color:var(--sub);display:flex;gap:10px;align-items:center}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:10px;padding:9px 16px;font-size:13.5px;background:var(--accent);color:#fff;transition:.15s}
+  button:hover{opacity:.88}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  button.ghost{background:#fff;color:#4c483e;border:1px solid var(--line)}
+  button.warn{background:#c25b40}
+  nav{display:flex;gap:4px;padding:12px 22px 0;border-bottom:1px solid var(--line);background:#fff}
+  nav div{padding:10px 16px;font-size:14px;color:var(--sub);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+  nav div.on{color:var(--accent);font-weight:700;border-bottom-color:var(--accent)}
+  main{max-width:1180px;margin:0 auto;padding:24px 22px 80px}
+  .page{display:none}
+  .page.on{display:block}
+  .grid2{display:grid;grid-template-columns:1fr 400px;gap:28px;align-items:start}
+  @media(max-width:900px){.grid2{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-bottom:18px}
+  .card h3{font-size:14px;margin-bottom:12px;color:var(--accent);font-weight:700}
+  label{display:block;font-size:12.5px;color:var(--sub);margin:12px 0 5px}
+  input[type=text],input[type=date],input[type=number],textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:14px;background:#fff;color:var(--ink)}
+  textarea{min-height:78px;resize:vertical;line-height:1.7}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:20px;padding:5px 12px;font-size:12.5px;cursor:pointer;color:#6b6455}
+  .chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .vlist{max-height:280px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;margin-top:8px;background:#fff}
+  .vitem{padding:10px 13px;border-bottom:1px solid #f2eee4;cursor:pointer;font-size:13px}
+  .vitem:hover{background:#f5f3ec}
+  .vitem b{color:var(--accent);font-size:12px;display:block;margin-bottom:2px}
+  .preview{position:sticky;top:78px}
+  canvas{width:100%;border-radius:14px;box-shadow:0 12px 30px rgba(60,50,30,.2);display:block;background:#eee}
+  .hint{font-size:12px;color:var(--sub);margin-top:8px}
+  .row{display:flex;gap:10px}
+  .row>*{flex:1}
+  .msg{padding:11px 14px;border-radius:10px;font-size:13px;margin-bottom:14px;display:none}
+  .msg.ok{background:#e8f0e6;color:#3d5a3d;display:block}
+  .msg.err{background:#fbe9e4;color:#a4432a;display:block}
+  .msg.info{background:#eef2f6;color:#425466;display:block}
+  .listgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+  .listgrid .cell{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .listgrid img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block}
+  .listgrid .meta{padding:8px 10px;font-size:12px}
+  .listgrid .meta b{display:block;color:var(--accent)}
+  .empty{padding:50px;text-align:center;color:var(--sub);font-size:14px}
+  .gate{max-width:520px;margin:80px auto;text-align:center;background:#fff;border:1px solid var(--line);border-radius:18px;padding:44px 32px}
+  .gate h2{font-family:'Gowun Batang',serif;font-size:22px;margin-bottom:10px}
+  .gate p{font-size:13.5px;color:var(--sub);margin-bottom:22px}
+  .uid{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:#f2efe9;padding:10px 12px;border-radius:8px;word-break:break-all;margin-top:14px;user-select:all}
+  .item{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;font-size:13.5px}
+  .item .top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:6px}
+  .item .top b{color:var(--accent)}
+  .item .acts{display:flex;gap:8px;margin-top:10px}
+  .item .acts button{padding:6px 12px;font-size:12.5px}
+  .brow{display:grid;grid-template-columns:92px 1fr;gap:14px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;align-items:start}
+  .brow img{width:92px;aspect-ratio:4/5;object-fit:cover;border-radius:8px;display:block;background:#eee;cursor:zoom-in}
+  .brow.off{opacity:.4}
+  .brow .bhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .brow .bhead b{color:var(--accent);font-size:13.5px}
+  .brow .bhead button{padding:5px 11px;font-size:12px}
+  .brow .bmood{font-size:12px;color:var(--sub);margin:4px 0 8px}
+  .brow .btxt{font-size:13px;color:#57503f;line-height:1.65;margin-top:6px}
+  .bar{height:7px;background:#ece7dc;border-radius:99px;overflow:hidden;margin:10px 0 0}
+  .bar>i{display:block;height:100%;background:var(--accent);width:0;transition:.25s}
+  .zoom{position:fixed;inset:0;background:rgba(30,28,24,.82);display:none;align-items:center;justify-content:center;z-index:50;padding:24px}
+  .zoom.on{display:flex}
+  .zoom img{max-width:min(430px,92vw);max-height:92vh;border-radius:12px}
+  .bsel{display:flex;gap:8px;margin-top:2px}
+  .bsel select:first-child{flex:2}
+  .bsel select:last-child{flex:1}
+  @media(max-width:700px){.bsel{flex-direction:column}}
+  .modal{position:fixed;inset:0;background:rgba(30,28,24,.6);display:none;align-items:flex-start;justify-content:center;z-index:60;padding:28px 16px;overflow-y:auto}
+  .modal.on{display:flex}
+  .mbox{background:var(--bg);border-radius:18px;max-width:980px;width:100%;overflow:hidden;box-shadow:0 24px 60px rgba(30,25,15,.35)}
+  .mhead{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:#fff;border-bottom:1px solid var(--line)}
+  .mhead b{font-family:'Gowun Batang',serif;font-size:17px;color:var(--accent)}
+  .mbody{display:grid;grid-template-columns:330px 1fr;gap:22px;padding:20px}
+  @media(max-width:820px){.mbody{grid-template-columns:1fr}}
+  .mbody canvas,.mbody .cur{width:100%;border-radius:12px;box-shadow:0 10px 26px rgba(60,50,30,.22);display:block;background:#eee}
+  .mfields{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>시선 <span style="font-size:13px;color:#a09a8c;font-weight:400">관리자</span></h1>
+  <div class="who" id="who"></div>
+</header>
+
+<div id="app" style="display:none">
+<nav>
+  <div class="on" data-p="p-card">카드 만들기</div>
+  <div data-p="p-batch">일괄 발행</div>
+  <div data-p="p-list">발행 목록</div>
+  <div data-p="p-artist">아티스트 소식</div>
+  <div data-p="p-report">신고 관리</div>
+</nav>
+
+<main>
+  <!-- 카드 만들기 -->
+  <section class="page on" id="p-card">
+    <div id="cardMsg" class="msg"></div>
+    <div class="grid2">
+      <div>
+        <div class="card">
+          <h3>1. 사진</h3>
+          <input type="file" id="photo" accept="image/*">
+          <div class="hint">채수호 집사님 원본을 그대로 올리세요. 브라우저에서 1080×1350으로 줄여 저장하므로 서버 용량을 아낍니다.</div>
+          <div class="msg info" id="autoInfo" style="display:none;margin:12px 0 0"></div>
+        </div>
+
+        <div class="card">
+          <h3>2. 말씀 — 사진에 맞춰 자동 추천</h3>
+          <label>사진에서 읽은 분위기 (자동 선택 — 눌러서 바꿀 수 있어요)</label>
+          <div class="chips" id="moodChips"></div>
+          <div class="vlist" id="verseList"></div>
+        </div>
+
+        <div class="card">
+          <h3>3. 말씀 내용</h3>
+          <label>한글 말씀 (개역한글)</label>
+          <textarea id="verseKr" placeholder="말씀을 입력하거나 위에서 골라주세요"></textarea>
+          <label>한글 장절 표기</label>
+          <input type="text" id="refKr" placeholder="시편 121:1-2">
+          <label>영문 말씀</label>
+          <textarea id="verseEn" placeholder="English verse"></textarea>
+          <label>영문 장절 표기</label>
+          <input type="text" id="refEn" placeholder="Psalms 121:1-2">
+        </div>
+
+        <div class="card">
+          <h3>4. 글씨와 크레딧</h3>
+          <label>글씨 색 (사진과 겹쳐 잘 안 보일 때 바꿔주세요)</label>
+          <select id="style"></select>
+          <label>인스타 계정 (사진 아래 &copy; 로 표시됩니다)</label>
+          <input type="text" id="ig" value="genuine_beautiful">
+          <input type="hidden" id="year" value="2026">
+          <input type="hidden" id="credit" value="bible_film">
+        </div>
+
+        <div class="card">
+          <h3>5. 발행</h3>
+          <label>이 카드가 나갈 날짜</label>
+          <input type="date" id="pubDate">
+          <div class="hint">지정한 날 아침에 이 카드가 사용자에게 나갑니다.</div>
+          <div style="margin-top:16px;display:flex;gap:10px">
+            <button id="btnPreview" class="ghost">미리보기 다시 그리기</button>
+            <button id="btnPublish">발행 예약하기</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview">
+        <canvas id="cv" width="1080" height="1350"></canvas>
+        <div class="hint" id="sizeHint">사진을 올리면 미리보기가 나타납니다.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 일괄 발행 -->
+  <section class="page" id="p-batch">
+    <div id="batchMsg" class="msg"></div>
+    <div class="card">
+      <h3>1. 사진 여러 장 고르기</h3>
+      <input type="file" id="bPhotos" accept="image/*" multiple>
+      <div class="hint">사진을 여러 장(또는 폴더째) 한 번에 고르세요. 파일 이름 순서대로 하루씩 차례로 배정됩니다.</div>
+      <div class="row" style="margin-top:14px">
+        <div><label>첫 카드가 나갈 날짜</label><input type="date" id="bStart"></div>
+        <div><label>인스타 계정</label><input type="text" id="bIg" value="genuine_beautiful"></div>
+      </div>
+      <div class="hint">이미 카드가 있는 날짜는 자동으로 건너뜁니다.</div>
+      <div style="margin-top:16px"><button id="btnBuild">카드 만들기</button></div>
+      <div class="bar" id="buildBar" style="display:none"><i></i></div>
+    </div>
+
+    <div class="card">
+      <h3>2. 확인하고 고치기</h3>
+      <div class="hint" style="margin-bottom:12px">말씀이 어색한 카드만 골라 바꾸세요. 빼고 싶은 카드는 <b>제외</b>를 누르면 됩니다. 사진을 누르면 크게 볼 수 있어요.</div>
+      <div id="batchList"><div class="empty">아직 만든 카드가 없습니다.</div></div>
+    </div>
+
+    <div class="card">
+      <h3>3. 전부 발행</h3>
+      <div id="pubSummary" class="hint">—</div>
+      <div style="margin-top:14px"><button id="btnPubAll" disabled>전부 발행하기</button></div>
+      <div class="bar" id="pubBar" style="display:none"><i></i></div>
+    </div>
+  </section>
+
+  <!-- 발행 목록 -->
+  <section class="page" id="p-list">
+    <div class="card"><h3>발행 예약된 카드</h3><div class="listgrid" id="cardList"><div class="empty">불러오는 중…</div></div></div>
+  </section>
+
+  <!-- 아티스트 소식 -->
+  <section class="page" id="p-artist">
+    <div id="artistMsg" class="msg"></div>
+    <div class="card">
+      <h3>새 소식 등록</h3>
+      <label>제목</label><input type="text" id="aTitle" placeholder="채수호 사진전 「여백」">
+      <label>부제 / 설명</label><input type="text" id="aSub" placeholder="2027 봄 · 서울 ○○갤러리">
+      <label>연결할 링크 (선택)</label><input type="text" id="aLink" placeholder="https://">
+      <div class="row">
+        <div><label>노출 시작</label><input type="date" id="aStart"></div>
+        <div><label>노출 종료</label><input type="date" id="aEnd"></div>
+      </div>
+      <div style="margin-top:16px"><button id="btnArtist">소식 등록</button></div>
+    </div>
+    <div class="card"><h3>등록된 소식</h3><div id="artistList"><div class="empty">불러오는 중…</div></div></div>
+  </section>
+
+  <!-- 신고 관리 -->
+  <section class="page" id="p-report">
+    <div id="repMsg" class="msg"></div>
+    <div class="card">
+      <h3>신고된 나눔글</h3>
+      <div class="hint" style="margin-bottom:12px">상업적 목적·후원 요청 등 운영 원칙에 어긋나는 글은 숨기거나 삭제하세요. 숨긴 글은 다른 사용자에게 보이지 않습니다.</div>
+      <div id="repList"><div class="empty">불러오는 중…</div></div>
+    </div>
+    <div class="card">
+      <h3>최근 나눔글 (전체)</h3>
+      <div id="shareList"><div class="empty">불러오는 중…</div></div>
+    </div>
+  </section>
+</main>
+</div>
+
+<div class="modal" id="editModal">
+  <div class="mbox">
+    <div class="mhead"><b id="edDate">카드 고치기</b><button class="ghost" id="edClose">닫기</button></div>
+    <div class="mbody">
+      <div>
+        <canvas id="edCv" width="1080" height="1350" style="display:none"></canvas>
+        <img class="cur" id="edCur" alt="현재 카드">
+        <div class="hint" id="edHint"></div>
+      </div>
+      <div class="mfields">
+        <div id="edMsg" class="msg"></div>
+        <label>말씀 고르기</label>
+        <select id="edVerse"></select>
+        <label>한글 말씀</label><textarea id="edKr"></textarea>
+        <label>한글 장절</label><input type="text" id="edRef">
+        <label>영문 말씀 (없으면 비워두세요)</label><textarea id="edEn"></textarea>
+        <label>영문 장절</label><input type="text" id="edRefEn">
+        <label>글씨 색</label><select id="edStyle"></select>
+        <label>인스타 계정</label><input type="text" id="edIg">
+        <label>사진 바꾸기 (그대로 두려면 건드리지 마세요)</label>
+        <input type="file" id="edPhoto" accept="image/*">
+        <div style="margin-top:18px;display:flex;gap:10px">
+          <button id="edSave">저장하기</button>
+          <button class="ghost" id="edCancel">취소</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="zoom" id="zoom"><img id="zoomImg" alt=""></div>
+
+<div id="gate" class="gate">
+  <h2>시선 관리자</h2>
+  <p>운영자 구글 계정으로 로그인해 주세요.</p>
+  <button id="btnLogin">구글로 로그인</button>
+  <div id="gateMsg"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, addDoc,
+         query, orderBy, limit, getDocs, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getStorage, ref as sRef, uploadBytes, getDownloadURL }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCuYS1eHvykRe5UKgBM_J1Xq2YxSEf7mdM",
+  authDomain: "photo-and-bible.firebaseapp.com",
+  projectId: "photo-and-bible",
+  storageBucket: "photo-and-bible.firebasestorage.app",
+  messagingSenderId: "51933715720",
+  appId: "1:51933715720:web:017d6a7b10eef69b3320bd"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+const VERSES = [{"ref": "시편 23:1", "text": "여호와는 나의 목자시니 내가 부족함이 없으리로다", "tags": ["평안", "들판", "자연", "쉼"]}, {"ref": "시편 23:2", "text": "그가 나를 푸른 초장에 누이시며 쉴만한 물가으로 인도하시는도다", "tags": ["들판", "물", "쉼", "평안", "인도"]}, {"ref": "시편 121:1-2", "text": "내가 산을 향하여 눈을 들리라 나의 도움이 어디서 올꼬 나의 도움이 천지를 지으신 여호와에게서로다", "tags": ["산", "소망", "하늘", "창조"]}, {"ref": "시편 19:1", "text": "하늘이 하나님의 영광을 선포하고 궁창이 그 손으로 하신 일을 나타내는도다", "tags": ["하늘", "창조", "자연"]}, {"ref": "시편 46:10", "text": "너희는 가만히 있어 내가 하나님 됨을 알지어다", "tags": ["고요", "새벽", "쉼", "평안"]}, {"ref": "시편 143:8", "text": "아침에 나로 하여금 주의 인자한 말씀을 듣게 하소서 내가 주를 의뢰함이니이다 나의 다닐 길을 알게 하소서 내가 내 영혼을 주께 받듦이니이다", "tags": ["아침", "새벽", "인도", "길"]}, {"ref": "예레미야애가 3:22-23", "text": "여호와의 자비와 긍휼이 무궁하시므로 우리가 진멸되지 아니함이니이다 이것이 아침마다 새로우니 주의 성실이 크도소이다", "tags": ["아침", "새벽", "새로움", "소망"]}, {"ref": "이사야 41:10", "text": "두려워 말라 내가 너와 함께 함이니라 놀라지 말라 나는 네 하나님이 됨이니라 내가 너를 굳세게 하리라 참으로 너를 도와주리라 참으로 나의 의로운 오른손으로 너를 붙들리라", "tags": ["용기", "위로"]}, {"ref": "마태복음 11:28", "text": "수고하고 무거운 짐진 자들아 다 내게로 오라 내가 너희를 쉬게 하리라", "tags": ["쉼", "위로", "평안"]}, {"ref": "요한복음 8:12", "text": "나는 세상의 빛이니 나를 따르는 자는 어두움에 다니지 아니하고 생명의 빛을 얻으리라", "tags": ["빛", "길", "새벽"]}, {"ref": "마태복음 6:26", "text": "공중의 새를 보라 심지도 않고 거두지도 않고 창고에 모아 들이지도 아니하되 너희 천부께서 기르시나니 너희는 이것들보다 귀하지 아니하냐", "tags": ["자연", "하늘", "위로", "평안"]}, {"ref": "마태복음 6:28-29", "text": "들의 백합화가 어떻게 자라는가 생각하여 보라 수고도 아니하고 길쌈도 아니하느니라 그러나 내가 너희에게 말하노니 솔로몬의 모든 영광으로도 입은 것이 이 꽃 하나만 같지 못하였느니라", "tags": ["꽃", "들판", "자연", "위로"]}, {"ref": "빌립보서 4:6-7", "text": "아무 것도 염려하지 말고 오직 모든 일에 기도와 간구로 너희 구할 것을 감사함으로 하나님께 아뢰라 그리하면 모든 지각에 뛰어난 하나님의 평강이 그리스도 예수 안에서 너희 마음과 생각을 지키시리라", "tags": ["평안", "감사", "위로"]}, {"ref": "빌립보서 4:13", "text": "내게 능력 주시는 자 안에서 내가 모든 것을 할 수 있느니라", "tags": ["용기", "소망"]}, {"ref": "잠언 3:5-6", "text": "너는 마음을 다하여 여호와를 의뢰하고 네 명철을 의지하지 말라 너는 범사에 그를 인정하라 그리하면 네 길을 지도하시리라", "tags": ["길", "인도", "소망"]}, {"ref": "시편 37:5", "text": "너의 길을 여호와께 맡기라 저를 의지하면 저가 이루시고", "tags": ["길", "인도", "평안"]}, {"ref": "이사야 40:31", "text": "오직 여호와를 앙망하는 자는 새 힘을 얻으리니 독수리의 날개치며 올라감 같을 것이요 달음박질하여도 곤비치 아니하겠고 걸어가도 피곤치 아니하리로다", "tags": ["용기", "하늘", "새로움", "소망"]}, {"ref": "시편 8:3-4", "text": "주의 손가락으로 만드신 주의 하늘과 주의 베풀어 두신 달과 별들을 내가 보오니 사람이 무엇이관대 주께서 저를 생각하시며 인자가 무엇이관대 주께서 저를 권고하시나이까", "tags": ["밤", "별", "하늘", "창조"]}, {"ref": "창세기 1:1", "text": "태초에 하나님이 천지를 창조하시니라", "tags": ["창조", "하늘", "자연", "새로움"]}, {"ref": "시편 118:24", "text": "이 날은 여호와의 정하신 것이라 이 날에 우리가 즐거워하고 기뻐하리로다", "tags": ["아침", "기쁨", "감사"]}, {"ref": "데살로니가전서 5:16-18", "text": "항상 기뻐하라 쉬지 말고 기도하라 범사에 감사하라 이는 그리스도 예수 안에서 너희를 향하신 하나님의 뜻이니라", "tags": ["기쁨", "감사"]}, {"ref": "시편 100:4-5", "text": "감사함으로 그 문에 들어가며 찬송함으로 그 궁정에 들어가서 그에게 감사하며 그 이름을 송축할지어다 대저 여호와는 선하시니 그 인자하심이 영원하고 그 성실하심이 대대에 미치리로다", "tags": ["감사", "기쁨"]}, {"ref": "요한복음 14:27", "text": "평안을 너희에게 끼치노니 곧 나의 평안을 너희에게 주노라 내가 너희에게 주는 것은 세상이 주는 것 같지 아니하니라 너희는 마음에 근심도 말고 두려워하지도 말라", "tags": ["평안", "위로", "고요"]}, {"ref": "시편 4:8", "text": "내가 평안히 눕고 자기도 하리니 나를 안전히 거하게 하시는 이는 오직 여호와시니이다", "tags": ["밤", "평안", "쉼"]}, {"ref": "이사야 60:1", "text": "일어나라 빛을 발하라 이는 네 빛이 이르렀고 여호와의 영광이 네 위에 임하였음이니라", "tags": ["빛", "아침", "새벽", "용기"]}, {"ref": "시편 27:1", "text": "여호와는 나의 빛이요 나의 구원이시니 내가 누구를 두려워하리요 여호와는 내 생명의 능력이시니 내가 누구를 무서워하리요", "tags": ["빛", "용기"]}, {"ref": "시편 42:1", "text": "하나님이여 사슴이 시냇물을 찾기에 갈급함 같이 내 영혼이 주를 찾기에 갈급하니이다", "tags": ["물", "숲", "자연"]}, {"ref": "이사야 43:19", "text": "보라 내가 새 일을 행하리니 이제 나타낼 것이라 너희가 그것을 알지 못하겠느냐 정녕히 내가 광야에 길과 사막에 강을 내리니", "tags": ["새로움", "길", "소망"]}, {"ref": "고린도후서 5:17", "text": "그런즉 누구든지 그리스도 안에 있으면 새로운 피조물이라 이전 것은 지나갔으니 보라 새 것이 되었도다", "tags": ["새로움", "소망"]}, {"ref": "전도서 3:11", "text": "하나님이 모든 것을 지으시되 때를 따라 아름답게 하셨고 또 사람에게 영원을 사모하는 마음을 주셨느니라", "tags": ["계절", "자연", "창조", "노을"]}, {"ref": "시편 90:14", "text": "아침에 주의 인자로 우리를 만족케 하사 우리 평생에 즐겁고 기쁘게 하소서", "tags": ["아침", "기쁨"]}, {"ref": "시편 30:5", "text": "저녁에는 울음이 기숙할지라도 아침에는 기쁨이 오리로다", "tags": ["아침", "노을", "소망", "위로"]}, {"ref": "로마서 8:28", "text": "우리가 알거니와 하나님을 사랑하는 자 곧 그 뜻대로 부르심을 입은 자들에게는 모든 것이 합력하여 선을 이루느니라", "tags": ["소망", "위로"]}, {"ref": "예레미야 29:11", "text": "나 여호와가 말하노라 너희를 향한 나의 생각은 내가 아나니 재앙이 아니라 곧 평안이요 너희 장래에 소망을 주려하는 생각이라", "tags": ["소망", "평안", "위로"]}, {"ref": "시편 139:9-10", "text": "내가 새벽 날개를 치며 바다 끝에 가서 거할지라도 곧 거기서도 주의 손이 나를 인도하시며 주의 오른손이 나를 붙드시리이다", "tags": ["새벽", "바다", "인도"]}, {"ref": "마태복음 5:16", "text": "이같이 너희 빛을 사람 앞에 비취게 하여 저희로 너희 착한 행실을 보고 하늘에 계신 너희 아버지께 영광을 돌리게 하라", "tags": ["빛", "밤"]}, {"ref": "시편 96:11-12", "text": "하늘은 기뻐하고 땅은 즐거워하며 바다와 거기 충만한 것은 외치며 밭과 그 가운데 모든 것은 즐거워할지로다 그리할 때에 삼림의 나무들이 여호와 앞에서 즐거이 노래하리니", "tags": ["자연", "숲", "바다", "기쁨", "나무"]}, {"ref": "이사야 55:12", "text": "너희는 기쁨으로 나아가며 평안히 인도함을 받을 것이요 산들과 작은 산들이 너희 앞에서 노래를 발하고 들의 모든 나무가 손바닥을 칠 것이며", "tags": ["산", "숲", "나무", "기쁨", "인도"]}, {"ref": "여호수아 1:9", "text": "내가 네게 명한 것이 아니냐 마음을 강하게 하고 담대히 하라 두려워 말며 놀라지 말라 네가 어디로 가든지 네 하나님 여호와가 너와 함께 하느니라", "tags": ["용기", "길"]}, {"ref": "시편 119:105", "text": "주의 말씀은 내 발에 등이요 내 길에 빛이니이다", "tags": ["길", "빛", "밤"]}, {"ref": "시편 34:8", "text": "너희는 여호와의 선하심을 맛보아 알지어다 그에게 피하는 자는 복이 있도다", "tags": ["감사", "기쁨"]}, {"ref": "시편 147:4", "text": "저가 별의 수효를 계수하시고 저희를 다 이름대로 부르시는도다", "tags": ["별", "밤", "하늘", "창조"]}, {"ref": "요한일서 4:19", "text": "우리가 사랑함은 그가 먼저 우리를 사랑하셨음이라", "tags": ["사랑"]}, {"ref": "스바냐 3:17", "text": "너의 하나님 여호와가 너의 가운데 계시니 그는 구원을 베푸실 전능자시라 그가 너로 인하여 기쁨을 이기지 못하여 하시며 너를 잠잠히 사랑하시며 너로 인하여 즐거이 부르며 기뻐하시리라", "tags": ["사랑", "기쁨", "위로"]}, {"ref": "시편 133:1", "text": "형제가 연합하여 동거함이 어찌 그리 선하고 아름다운고", "tags": ["공동체", "기쁨"]}, {"ref": "골로새서 3:15", "text": "그리스도의 평강이 너희 마음을 주장하게 하라 평강을 위하여 너희가 한 몸으로 부르심을 받았나니 또한 너희는 감사하는 자가 되라", "tags": ["평안", "감사", "공동체"]}];
+
+const $ = id => document.getElementById(id);
+const show = (el, type, text) => { el.className = 'msg ' + type; el.textContent = text; };
+
+const STYLES = [
+  ['auto',        '자동 (사진에 맞춰서)'],
+  ['light',       '흰 글씨'],
+  ['lightStrong', '흰 글씨 · 그림자 진하게'],
+  ['dark',        '진회색 글씨'],
+  ['darkStrong',  '진회색 글씨 · 흰 테두리']
+];
+const styleOpts = sel => STYLES.map(s =>
+  '<option value="' + s[0] + '"' + (s[0] === (sel||'auto') ? ' selected' : '') + '>' + s[1] + '</option>').join('');
+
+
+/* ---------------- 로그인 / 권한 ---------------- */
+$('btnLogin').onclick = async () => {
+  try { await signInWithPopup(auth, new GoogleAuthProvider()); }
+  catch (e) { $('gateMsg').innerHTML = '<div class="msg err" style="display:block;margin-top:16px">로그인 실패: ' + e.code + '</div>'; }
+};
+
+onAuthStateChanged(auth, async user => {
+  // 익명 세션(사용자 앱에서 넘어온 경우)은 로그인 안 한 것으로 취급
+  if (!user || user.isAnonymous || !user.email) {
+    $('gate').style.display = 'block'; $('app').style.display = 'none'; $('who').innerHTML = '';
+    $('gateMsg').innerHTML = '';
+    return;
+  }
+  let isAdmin = false;
+  try { isAdmin = (await getDoc(doc(db, 'admins', user.email))).exists(); } catch (e) {}
+  if (!isAdmin) {
+    $('gate').style.display = 'block'; $('app').style.display = 'none';
+    $('gateMsg').innerHTML = '<div class="msg info" style="display:block;margin-top:18px;text-align:left">' +
+      '이 계정은 아직 운영자로 등록되어 있지 않습니다.<br>Firebase 콘솔 → Firestore → <b>admins</b> 컬렉션에 아래 <b>이메일</b>을 문서 ID로 하는 문서를 하나 만들어 주세요.' +
+      '</div><div class="uid">' + user.email + '</div>' +
+      '<div style="margin-top:16px"><button class="ghost" id="btnOut2">로그아웃</button></div>';
+    $('btnOut2').onclick = () => signOut(auth);
+    return;
+  }
+  $('gate').style.display = 'none'; $('app').style.display = 'block';
+  $('who').innerHTML = '<span>' + (user.displayName || user.email) + '</span>';
+  const out = document.createElement('button');
+  out.className = 'ghost'; out.textContent = '로그아웃'; out.onclick = () => signOut(auth);
+  $('who').appendChild(out);
+  loadCards(); loadArtists(); loadReports();
+});
+
+/* ---------------- 탭 ---------------- */
+document.querySelectorAll('nav div').forEach(t => t.onclick = () => {
+  document.querySelectorAll('nav div').forEach(x => x.classList.remove('on'));
+  t.classList.add('on');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  $(t.dataset.p).classList.add('on');
+});
+
+/* ---------------- 사진 분석 → 말씀 자동 추천 ---------------- */
+const allMoods = [...new Set(VERSES.flatMap(v => v.tags))];
+let activeMoods = [];       // 운영자가 최종 선택한 분위기
+let autoScores = {};        // 사진에서 자동으로 읽어낸 분위기 점수
+$('moodChips').innerHTML = allMoods.map(m => '<span class="chip" data-m="' + m + '">' + m + '</span>').join('');
+$('moodChips').onclick = e => {
+  if (!e.target.dataset.m) return;
+  e.target.classList.toggle('on');
+  activeMoods = [...document.querySelectorAll('.chip.on')].map(c => c.dataset.m);
+  renderVerses();
+};
+function setChips(list){
+  activeMoods = list;
+  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', list.includes(c.dataset.m)));
+}
+
+/* 촬영 시각(EXIF) 읽기 */
+function exifDateTime(buf){
+  try{
+    const v = new DataView(buf);
+    if (v.getUint16(0) !== 0xFFD8) return null;
+    let off = 2;
+    while (off + 4 < v.byteLength){
+      const marker = v.getUint16(off), size = v.getUint16(off + 2);
+      if (marker === 0xFFE1){
+        const start = off + 4;
+        if (v.getUint32(start) !== 0x45786966) return null;
+        const tiff = start + 6;
+        const little = v.getUint16(tiff) === 0x4949;
+        const g16 = o => v.getUint16(o, little), g32 = o => v.getUint32(o, little);
+        const ifd0 = tiff + g32(tiff + 4);
+        const readTag = (base, tag) => {
+          const c = g16(base);
+          for (let i = 0; i < c; i++){
+            const e = base + 2 + i * 12;
+            if (g16(e) === tag){
+              const n = g32(e + 4);
+              let o = n <= 4 ? e + 8 : tiff + g32(e + 8);
+              let str = '';
+              for (let k = 0; k < n - 1; k++) str += String.fromCharCode(v.getUint8(o + k));
+              return str;
+            }
+          }
+          return null;
+        };
+        let exifPtr = null;
+        const c0 = g16(ifd0);
+        for (let i = 0; i < c0; i++){
+          const e = ifd0 + 2 + i * 12;
+          if (g16(e) === 0x8769) exifPtr = tiff + g32(e + 8);
+        }
+        return (exifPtr && readTag(exifPtr, 0x9003)) || readTag(ifd0, 0x0132);
+      }
+      if ((marker & 0xFF00) !== 0xFF00) break;
+      off += 2 + size;
+    }
+  }catch(e){}
+  return null;
+}
+
+/* 사진의 색·밝기·구도를 읽어 분위기 점수를 만든다 */
+function analyzePhoto(img, shotHour){
+  const W2 = 64, H2 = 80;
+  const c = document.createElement('canvas'); c.width = W2; c.height = H2;
+  const x = c.getContext('2d', { willReadFrequently: true });
+  x.drawImage(img, 0, 0, W2, H2);
+  const d = x.getImageData(0, 0, W2, H2).data;
+  let lum = 0, sat = 0, n = 0, topLum = 0, topN = 0, topSat = 0;
+  let green = 0, blue = 0, warm = 0, pink = 0, dark = 0, colored = 0;
+  let blueTop = 0, blueBot = 0;
+  for (let i = 0; i < d.length; i += 4){
+    const idx = i / 4, py = (idx / W2) | 0;
+    const r = d[i], g = d[i+1], b = d[i+2];
+    const mx = Math.max(r,g,b), mn = Math.min(r,g,b);
+    const l = 0.299*r + 0.587*g + 0.114*b;
+    const s = mx ? (mx - mn) / mx : 0;
+    lum += l; sat += s; n++;
+    if (py < H2 * 0.34){ topLum += l; topSat += s; topN++; }
+    if (l < 62) dark++;
+    let h = 0;
+    if (mx !== mn){
+      if (mx === r) h = ((g - b) / (mx - mn)) % 6;
+      else if (mx === g) h = (b - r) / (mx - mn) + 2;
+      else h = (r - g) / (mx - mn) + 4;
+      h *= 60; if (h < 0) h += 360;
+    }
+    if (s > 0.13){
+      colored++;
+      if (h >= 70 && h < 170) green++;
+      else if (h >= 170 && h < 265){ blue++; if (py < H2*0.45) blueTop++; else blueBot++; }
+      else if (h < 48 || h >= 330) warm++;
+      if (h >= 285 && h < 355 && l > 145) pink++;
+    }
+  }
+  lum /= n; sat /= n;
+  topLum = topN ? topLum / topN : 0; topSat = topN ? topSat / topN : 0;
+  const R = v => v / Math.max(1, n);
+  const gR = R(green), bR = R(blue), wR = R(warm), pR = R(pink), dR = R(dark);
+
+  const T = {};
+  const add = (tag, w) => { if (w > 0) T[tag] = (T[tag] || 0) + w; };
+
+  // 색으로 읽는 소재
+  if (bR > 0.10){ add('하늘', bR * 3.4); add('창조', bR * 2.0); add('평안', bR * 1.8); }
+  if (R(blueTop) > 0.09) add('하늘', 1.6);
+  if (R(blueBot) > 0.09){ add('바다', R(blueBot) * 8); add('물', R(blueBot) * 6.5); }
+  if (gR > 0.14){ add('자연', gR * 4.5); add('들판', gR * 3.0); add('숲', gR * 2.6); add('나무', gR * 2.2); }
+  if (pR > 0.035){ add('꽃', pR * 12); add('계절', pR * 7); add('기쁨', pR * 4); }
+  if (wR > 0.16 && lum < 175){ add('노을', wR * 4.2); add('감사', wR * 1.8); }
+  if (dR > 0.42){ add('밤', dR * 5.5); add('별', dR * 3.4); add('위로', dR * 1.8); add('소망', dR * 1.5); }
+
+  // 밝기·채도로 읽는 정서
+  if (lum > 168 && sat < 0.30){ add('고요', 2.6); add('새벽', 1.8); add('빛', 1.6); add('쉼', 1.4); }
+  if (lum > 150 && sat >= 0.30){ add('기쁨', 1.8); add('감사', 1.6); add('새로움', 1.2); }
+  if (lum < 95){ add('위로', 1.8); add('소망', 1.4); }
+  if (sat < 0.22){ add('평안', 1.6); add('쉼', 1.2); }
+
+  // 구도: 위쪽이 비어 있으면(밝고 단조로움) 하늘·소망
+  if (topLum > 150 && topSat < 0.32){ add('하늘', 1.4); add('소망', 1.4); add('인도', 1.0); }
+
+  // 촬영 시각
+  if (shotHour !== null){
+    if (shotHour >= 4 && shotHour < 8){ add('새벽', 3.2); add('아침', 2.6); add('새로움', 2.2); }
+    else if (shotHour >= 8 && shotHour < 11){ add('아침', 2.4); add('기쁨', 1.2); }
+    else if (shotHour >= 17 && shotHour < 20){ add('노을', 2.6); add('감사', 1.4); }
+    else if (shotHour >= 20 || shotHour < 4){ add('밤', 3.0); add('별', 2.0); }
+  }
+
+  const desc = [];
+  desc.push(lum > 168 ? '밝고 환한' : lum < 95 ? '어둡고 깊은' : '차분한');
+  if (bR > 0.10) desc.push('푸른');
+  if (gR > 0.14) desc.push('초록의');
+  if (pR > 0.035) desc.push('꽃이 있는');
+  if (wR > 0.16 && lum < 175) desc.push('따뜻한 빛의');
+  return { tags: T, desc: desc.join(' ') + ' 사진' };
+}
+
+/* 점수순으로 말씀 정렬 */
+function scoreVerse(v){
+  let sc = 0;
+  v.tags.forEach(t => {
+    if (autoScores[t]) sc += autoScores[t];
+    if (activeMoods.includes(t)) sc += 3;
+  });
+  return sc;
+}
+function renderVerses(){
+  const scored = VERSES.map(v => ({ v, s: scoreVerse(v) }));
+  const any = scored.some(x => x.s > 0);
+  scored.sort((a, b) => b.s - a.s);
+  const list = any ? scored : VERSES.map(v => ({ v, s: 0 }));
+  $('verseList').innerHTML = list.map((x, i) =>
+    '<div class="vitem" data-ref="' + x.v.ref + '"><b>' + x.v.ref +
+    (any && i < 5 && x.s > 0 ? ' <span style="color:#b08442">★ 추천</span>' : '') + '</b>' + x.v.text + '</div>'
+  ).join('') || '<div class="empty">말씀이 없습니다</div>';
+}
+renderVerses();
+$('verseList').onclick = e => {
+  const item = e.target.closest('.vitem'); if (!item) return;
+  const v = VERSES.find(x => x.ref === item.dataset.ref);
+  $('verseKr').value = v.text; $('refKr').value = v.ref;
+  draw();
+};
+
+/* ---------------- 카드 그리기 (채수호 스타일) ---------------- */
+const W = 1080, H = 1350;
+const cv = $('cv'), ctx = cv.getContext('2d', { willReadFrequently: true });
+let photo = null;
+
+$('photo').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  let hour = null;
+  try{
+    const dt = exifDateTime(await f.arrayBuffer());
+    if (dt){ const m = dt.match(/\s(\d{2}):/); if (m) hour = Number(m[1]); }
+  }catch(err){}
+  const img = new Image();
+  img.onload = () => {
+    photo = img;
+    const a = analyzePhoto(img, hour);
+    autoScores = a.tags;
+    const top = Object.entries(a.tags).sort((x,y)=>y[1]-x[1]).slice(0,4).map(x=>x[0]);
+    setChips(top);
+    renderVerses();
+    // 가장 잘 맞는 말씀을 자동으로 채움 (운영자가 바꿀 수 있음)
+    const best = VERSES.map(v => ({v, s: scoreVerse(v)})).sort((x,y)=>y.s-x.s)[0];
+    if (best && best.s > 0 && !$('verseKr').value.trim()){
+      $('verseKr').value = best.v.text; $('refKr').value = best.v.ref;
+    }
+    $('autoInfo').innerHTML = '🔎 <b>' + a.desc + '</b>' +
+      (hour !== null ? ' · 촬영 ' + String(hour).padStart(2,'0') + '시' : '') +
+      '<br>읽어낸 분위기: <b>' + (top.join(' · ') || '—') + '</b> — 아래 말씀이 추천순으로 정렬되었습니다.';
+    $('autoInfo').style.display = 'block';
+    draw();
+  };
+  img.src = URL.createObjectURL(f);
+};
+['verseKr','refKr','verseEn','refEn','year','credit','ig'].forEach(id => $(id).oninput = () => draw());
+$('style').innerHTML = styleOpts('auto');
+$('style').onchange = () => draw();
+$('btnPreview').onclick = () => draw();
+
+function wrap(ctx, text, maxW) {
+  const words = String(text).trim().split(/\s+/);
+  const lines = []; let cur = '';
+  for (const w of words) {
+    const t = cur ? cur + ' ' + w : w;
+    if (ctx.measureText(t).width <= maxW) cur = t;
+    else { if (cur) lines.push(cur); cur = w; }
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+function regionStat(ctx, x0, y0, x1, y1) {
+  const d = ctx.getImageData(x0, y0, x1 - x0, y1 - y0).data;
+  let lum = 0, sat = 0, n = 0;
+  for (let i = 0; i < d.length; i += 4 * 11) {
+    const r = d[i], g = d[i+1], b = d[i+2];
+    lum += 0.299*r + 0.587*g + 0.114*b;
+    const mx = Math.max(r,g,b), mn = Math.min(r,g,b);
+    sat += mx === 0 ? 0 : (mx - mn) / mx * 255;
+    n++;
+  }
+  return { lum: lum/n, sat: sat/n };
+}
+
+async function loadFonts(krText, enText){
+  await document.fonts.load('40px "Gowun Batang"', (krText || '') + '가나다');
+  await document.fonts.load('34px "Gowun Batang"', '(시편)');
+  await document.fonts.load('32px "Crimson Text"', (enText || '') + 'Abc');
+  await document.fonts.load('600 27px "Noto Sans KR"', '© genuine_beautiful');
+}
+
+/* 카드 한 장을 캔버스에 그린다 (한 장 만들기 · 일괄 만들기 공용) */
+async function renderTo(canvas, photoImg, o) {
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const krText = o.krText || '말씀을 입력해 주세요';
+  const enText = o.enText || '';
+  await loadFonts(krText, enText);
+
+  ctx.clearRect(0, 0, W, H);
+  const scale = Math.max(W / photoImg.width, H / photoImg.height);
+  const dw = photoImg.width * scale, dh = photoImg.height * scale;
+  ctx.drawImage(photoImg, (W - dw) / 2, 0, dw, dh);
+
+  const top = regionStat(ctx, 100, 80, W - 100, Math.floor(H * 0.45));
+  const bot = regionStat(ctx, 100, 1200, W - 100, 1330);
+  const st = o.style || 'auto';
+  const autoLight = !(top.lum > 168 && top.sat < 95);
+  const light = st === 'auto' ? autoLight : (st === 'light' || st === 'lightStrong');
+  const smode = st === 'auto' ? (autoLight ? 'soft' : 'none')
+              : st === 'light' ? 'soft'
+              : st === 'lightStrong' ? 'strong'
+              : st === 'dark' ? 'none' : 'glow';
+  const cKr = light ? 'rgb(250,250,248)' : 'rgb(88,88,88)';
+  const cEn = light ? 'rgb(240,240,236)' : 'rgb(115,115,115)';
+  const cPen = st === 'auto'
+    ? ((bot.lum > 168 && bot.sat < 95) ? 'rgb(110,105,95)' : 'rgb(250,250,246)')
+    : (light ? 'rgb(250,250,246)' : 'rgb(105,100,92)');
+
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.font = '40px "Gowun Batang"';
+  const krLines = wrap(ctx, krText, 760);
+  ctx.font = '32px "Crimson Text"';
+  const enLines = enText ? wrap(ctx, enText, 660) : [];
+  const krLh = Math.floor(40 * 1.95), enLh = Math.floor(32 * 1.45);
+  const total = krLines.length * krLh + Math.floor(34 * 1.95) + 45 + (enLines.length + 1) * enLh;
+  let y = Math.max(140, 220 - Math.max(0, total - 560) / 3);
+
+  const shadow = on => {
+    if (!on || smode === 'none') { ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0; }
+    else if (smode === 'soft')   { ctx.shadowColor = 'rgba(40,45,50,0.45)'; ctx.shadowBlur = 3; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 3; }
+    else if (smode === 'strong') { ctx.shadowColor = 'rgba(14,17,21,0.62)'; ctx.shadowBlur = 17; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 2; }
+    else                         { ctx.shadowColor = 'rgba(255,255,255,0.85)'; ctx.shadowBlur = 13; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0; }
+  };
+  const rep = (smode === 'strong' || smode === 'glow') ? 3 : 1;
+  const T = (s2, x, y2) => { for (let k = 0; k < rep; k++) ctx.fillText(s2, x, y2); };
+
+  shadow(true);
+  ctx.fillStyle = cKr; ctx.font = '40px "Gowun Batang"';
+  krLines.forEach(l => { T(l, W/2, y); y += krLh; });
+  ctx.font = '34px "Gowun Batang"';
+  if (o.krRef) T('(' + o.krRef + ')', W/2, y);
+  y += Math.floor(34 * 1.95) + 26;
+  ctx.fillStyle = cEn; ctx.font = '32px "Crimson Text"';
+  enLines.forEach(l => { T(l, W/2, y); y += enLh; });
+  if (o.enRef) T('(' + o.enRef + ')', W/2, y);
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = cPen;
+  ctx.font = '600 27px "Noto Sans KR", sans-serif';
+  T('© ' + (o.ig || 'genuine_beautiful'), W/2, 1272);
+  shadow(false);
+}
+
+async function draw() {
+  if (!photo) return;
+  await renderTo(cv, photo, {
+    krText: $('verseKr').value, krRef: $('refKr').value,
+    enText: $('verseEn').value, enRef: $('refEn').value,
+    ig: $('ig').value, style: $('style').value
+  });
+  cv.toBlob(bl => { $('sizeHint').textContent = '미리보기 · 저장 크기 약 ' + Math.round(bl.size/1024) + 'KB'; }, 'image/jpeg', 0.9);
+}
+
+/* 공용 도우미 */
+const loadImageFile = file => new Promise((res, rej) => {
+  const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = URL.createObjectURL(file);
+});
+const loadImageUrl = url => new Promise((res, rej) => {
+  const im = new Image(); im.crossOrigin = 'anonymous';
+  im.onload = () => res(im); im.onerror = () => rej(new Error('cors'));
+  im.src = url;
+});
+
+/* 글씨 없는 원본(1080x1350) — 나중에 다시 고칠 수 있도록 같이 보관 */
+async function baseBlob(img){
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  const s = Math.max(W / img.width, H / img.height);
+  x.drawImage(img, (W - img.width * s) / 2, 0, img.width * s, img.height * s);
+  return await new Promise(r => c.toBlob(r, 'image/jpeg', 0.86));
+}
+
+/* 카드 이미지 + 원본을 올리고 문서에 저장 */
+async function publishCard(date, cardBlob, photoImg, data){
+  const path = 'cards/' + date + '.jpg';
+  await uploadBytes(sRef(storage, path), cardBlob,
+    { contentType: 'image/jpeg', cacheControl: 'public, max-age=31536000, immutable' });
+  const imageUrl = await getDownloadURL(sRef(storage, path));
+  let baseUrl = null, basePath = null;
+  if (photoImg){
+    basePath = 'base/' + date + '.jpg';
+    try{
+      await uploadBytes(sRef(storage, basePath), await baseBlob(photoImg), { contentType: 'image/jpeg' });
+      baseUrl = await getDownloadURL(sRef(storage, basePath));
+    }catch(e){ basePath = null; console.warn('원본 보관 실패', e); }
+  }
+  const payload = Object.assign({
+    date, imageUrl, storagePath: path, photographer: '채수호',
+    updatedAt: serverTimestamp(), createdBy: auth.currentUser.uid
+  }, data);
+  if (baseUrl){ payload.baseUrl = baseUrl; payload.basePath = basePath; }
+  await setDoc(doc(db, 'cards', date), payload, { merge: true });
+  return imageUrl;
+}
+const ymd = d => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+async function readExifHour(file){
+  try{
+    const dt = exifDateTime(await file.arrayBuffer());
+    if (dt){ const m = dt.match(/\s(\d{2}):/); if (m) return Number(m[1]); }
+  }catch(e){}
+  return null;
+}
+
+/* ---------------- 발행 ---------------- */
+const t = new Date(Date.now() + 86400000);
+$('pubDate').value = t.toISOString().slice(0, 10);
+
+$('btnPublish').onclick = async () => {
+  const m = $('cardMsg');
+  const date = $('pubDate').value;
+  if (!photo) return show(m, 'err', '사진을 먼저 올려주세요.');
+  if (!$('verseKr').value.trim()) return show(m, 'err', '한글 말씀을 입력해 주세요.');
+  if (!date) return show(m, 'err', '발행 날짜를 선택해 주세요.');
+  $('btnPublish').disabled = true;
+  try {
+    show(m, 'info', '카드를 만드는 중…');
+    await draw();
+    const blob = await new Promise(res => cv.toBlob(res, 'image/jpeg', 0.9));
+    show(m, 'info', '이미지를 올리는 중… (' + Math.round(blob.size/1024) + 'KB)');
+    await publishCard(date, blob, photo, {
+      verseKr: $('verseKr').value.trim(), refKr: $('refKr').value.trim(),
+      verseEn: $('verseEn').value.trim(), refEn: $('refEn').value.trim(),
+      moods: activeMoods, style: $('style').value,
+      credit: $('credit').value, igHandle: $('ig').value, year: Number($('year').value),
+      createdAt: serverTimestamp()
+    });
+    show(m, 'ok', date + ' 카드가 발행 예약되었습니다.');
+    loadCards();
+  } catch (e) {
+    show(m, 'err', '실패: ' + (e.code || e.message));
+  } finally { $('btnPublish').disabled = false; }
+};
+
+/* ---------------- 목록 ---------------- */
+async function loadCards() {
+  try {
+    const snap = await getDocs(query(collection(db, 'cards'), orderBy('date', 'desc'), limit(60)));
+    if (snap.empty) { $('cardList').innerHTML = '<div class="empty">아직 발행된 카드가 없습니다.</div>'; return; }
+    $('cardList').innerHTML = snap.docs.map(d => {
+      const c = d.data();
+      return '<div class="cell"><img src="' + c.imageUrl + '" loading="lazy">' +
+        '<div class="meta"><b>' + c.date + '</b>' + (c.refKr || '') +
+        '<div style="margin-top:8px"><button class="ghost" data-edit="' + c.date + '" style="padding:5px 11px;font-size:12px">고치기</button></div>' +
+        '</div></div>';
+    }).join('');
+  } catch (e) { $('cardList').innerHTML = '<div class="empty">불러오기 실패: ' + (e.code||e.message) + '</div>'; }
+}
+$('cardList').onclick = e => {
+  const b = e.target.closest('button[data-edit]');
+  if (b) openEdit(b.dataset.edit);
+};
+
+/* ---------------- 발행된 카드 고치기 ---------------- */
+let edDate = null, edImg = null;
+const VSORT = [...VERSES].sort((a, b) => a.ref.localeCompare(b.ref, 'ko'));
+
+$('edVerse').innerHTML = '<option value="">— 직접 입력 —</option>' +
+  VSORT.map(v => '<option value="' + v.ref + '">' + v.ref + ' — ' + v.text.slice(0, 30) + '…</option>').join('');
+$('edStyle').innerHTML = styleOpts('auto');
+
+async function openEdit(date){
+  edDate = date; edImg = null;
+  $('edMsg').className = 'msg'; $('edMsg').textContent = '';
+  $('edPhoto').value = '';
+  $('edDate').textContent = date + ' 카드 고치기';
+  $('editModal').classList.add('on');
+  let c = {};
+  try { c = (await getDoc(doc(db, 'cards', date))).data() || {}; }
+  catch(e){ return show($('edMsg'), 'err', '불러오기 실패: ' + (e.code || e.message)); }
+  $('edKr').value = c.verseKr || ''; $('edRef').value = c.refKr || '';
+  $('edEn').value = c.verseEn || ''; $('edRefEn').value = c.refEn || '';
+  $('edIg').value = c.igHandle || 'genuine_beautiful';
+  $('edStyle').innerHTML = styleOpts(c.style || 'auto');
+  $('edVerse').value = VSORT.some(v => v.ref === c.refKr) ? c.refKr : '';
+  $('edCur').src = c.imageUrl || '';
+  $('edCv').style.display = 'none'; $('edCur').style.display = 'block';
+  $('edHint').textContent = '지금 발행된 카드입니다.';
+
+  if (c.baseUrl){
+    show($('edMsg'), 'info', '사진을 불러오는 중…');
+    try {
+      edImg = await loadImageUrl(c.baseUrl);
+      $('edMsg').className = 'msg'; $('edMsg').textContent = '';
+      $('edHint').textContent = '고친 내용이 바로 반영된 미리보기입니다.';
+      await edDraw();
+    } catch(e){
+      edImg = null;
+      show($('edMsg'), 'info', '보관된 사진을 브라우저가 직접 읽지 못했습니다. 아래 「사진 바꾸기」에서 원본 사진을 올려주시면 고칠 수 있습니다.');
+    }
+  } else {
+    show($('edMsg'), 'info', '이 카드는 원본 사진이 보관되기 전에 발행되었습니다. 아래 사진 바꾸기에서 원본을 올려주시면 고칠 수 있습니다.');
+  }
+}
+
+async function edDraw(){
+  if (!edImg) return;
+  $('edCv').style.display = 'block'; $('edCur').style.display = 'none';
+  await renderTo($('edCv'), edImg, {
+    krText: $('edKr').value, krRef: $('edRef').value,
+    enText: $('edEn').value, enRef: $('edRefEn').value,
+    ig: $('edIg').value, style: $('edStyle').value
+  });
+}
+
+['edKr','edRef','edEn','edRefEn','edIg'].forEach(id => $(id).oninput = () => edDraw());
+$('edStyle').onchange = () => edDraw();
+$('edVerse').onchange = () => {
+  const v = VSORT.find(x => x.ref === $('edVerse').value);
+  if (!v) return;
+  $('edKr').value = v.text; $('edRef').value = v.ref;
+  edDraw();
+};
+$('edPhoto').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    edImg = await loadImageFile(f);
+    $('edMsg').className = 'msg'; $('edMsg').textContent = '';
+    $('edHint').textContent = '고친 내용이 바로 반영된 미리보기입니다.';
+    await edDraw();
+  } catch(err){ show($('edMsg'), 'err', '사진을 읽지 못했습니다.'); }
+};
+
+const edClose = () => { $('editModal').classList.remove('on'); edImg = null; edDate = null; };
+$('edClose').onclick = edClose;
+$('edCancel').onclick = edClose;
+$('editModal').onclick = e => { if (e.target === $('editModal')) edClose(); };
+
+$('edSave').onclick = async () => {
+  if (!edImg) return show($('edMsg'), 'err', '사진을 올려주셔야 카드를 다시 만들 수 있습니다.');
+  if (!$('edKr').value.trim()) return show($('edMsg'), 'err', '한글 말씀을 입력해 주세요.');
+  $('edSave').disabled = true;
+  try {
+    show($('edMsg'), 'info', '카드를 다시 만드는 중…');
+    await edDraw();
+    const blob = await new Promise(r => $('edCv').toBlob(r, 'image/jpeg', 0.9));
+    show($('edMsg'), 'info', '올리는 중… (' + Math.round(blob.size/1024) + 'KB)');
+    await publishCard(edDate, blob, edImg, {
+      verseKr: $('edKr').value.trim(), refKr: $('edRef').value.trim(),
+      verseEn: $('edEn').value.trim(), refEn: $('edRefEn').value.trim(),
+      style: $('edStyle').value, igHandle: $('edIg').value
+    });
+    show($('edMsg'), 'ok', '저장했습니다.');
+    await loadCards();
+    setTimeout(edClose, 700);
+  } catch(e){ show($('edMsg'), 'err', '실패: ' + (e.code || e.message)); }
+  finally { $('edSave').disabled = false; }
+};
+
+/* ---------------- 일괄 발행 ---------------- */
+let batch = [];                       // {file,img,blob,thumb,date,ref,ranked,desc,hour,off}
+const bmsg = () => $('batchMsg');
+const setBar = (id, pct) => { const b=$(id); b.style.display='block'; b.firstElementChild.style.width=pct+'%'; };
+
+{ const d = new Date(Date.now() + 86400000); $('bStart').value = ymd(d); }
+
+/* 이미 발행된 날짜 + 최근에 쓴 말씀(반복 피하기) */
+async function usedDatesAndRefs(){
+  const dates = new Set(); const refs = new Set();
+  try{
+    const snap = await getDocs(query(collection(db,'cards'), orderBy('date','desc'), limit(200)));
+    snap.docs.forEach((d,i) => { dates.add(d.id); if (i < 30 && d.data().refKr) refs.add(d.data().refKr); });
+  }catch(e){}
+  return { dates, refs };
+}
+
+/* 사진 한 장 → 분석 → 말씀 고르기 → 카드 그리기 */
+async function buildOne(file, usedRefs, ig){
+  const hour = await readExifHour(file);
+  const img = await loadImageFile(file);
+  const a = analyzePhoto(img, hour);
+  const ranked = VERSES
+    .map(v => ({ v, s: v.tags.reduce((t, tg) => t + (a.tags[tg] || 0), 0) }))
+    .sort((x, y) => y.s - x.s);
+  const pick = ranked.find(x => !usedRefs.has(x.v.ref)) || ranked[0];
+  usedRefs.add(pick.v.ref);
+  const it = { file, img, ranked, ref: pick.v.ref, desc: a.desc, hour, off: false, style: 'auto' };
+  await paint(it, ig);
+  return it;
+}
+
+/* 카드 이미지를 다시 그려 미리보기·업로드용 blob 을 만든다 */
+async function paint(it, ig){
+  const v = VERSES.find(x => x.ref === it.ref);
+  const c = document.createElement('canvas');
+  await renderTo(c, it.img, { krText: v.text, krRef: v.ref, ig: ig, style: it.style });
+  it.blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.9));
+  if (it.thumb) URL.revokeObjectURL(it.thumb);
+  it.thumb = URL.createObjectURL(it.blob);
+}
+
+/* 남은 날짜를 차례로 배정 (이미 카드가 있는 날은 건너뜀) */
+function assignDates(startStr, taken){
+  const [Y,M,D] = startStr.split('-').map(Number);
+  let cur = new Date(Y, M-1, D);
+  const used = new Set(taken);
+  batch.forEach(it => {
+    if (it.off) { it.date = null; return; }
+    let s = ymd(cur);
+    while (used.has(s)) { cur.setDate(cur.getDate()+1); s = ymd(cur); }
+    it.date = s; used.add(s);
+    cur.setDate(cur.getDate()+1);
+  });
+}
+
+let takenDates = new Set();
+
+$('btnBuild').onclick = async () => {
+  const files = [...$('bPhotos').files].sort((a,b) => a.name.localeCompare(b.name));
+  if (!files.length) return show(bmsg(), 'err', '사진을 먼저 골라주세요.');
+  if (!$('bStart').value) return show(bmsg(), 'err', '첫 카드가 나갈 날짜를 정해주세요.');
+  $('btnBuild').disabled = true; $('btnPubAll').disabled = true;
+  const ig = $('bIg').value;
+  try{
+    show(bmsg(), 'info', '이미 발행된 날짜를 확인하는 중…');
+    const u = await usedDatesAndRefs();
+    takenDates = u.dates;
+    const usedRefs = new Set(u.refs);
+    batch.forEach(it => { if (it.thumb) URL.revokeObjectURL(it.thumb); });
+    batch = [];
+    for (let i = 0; i < files.length; i++){
+      show(bmsg(), 'info', '카드 만드는 중… ' + (i+1) + ' / ' + files.length + '  (' + files[i].name + ')');
+      setBar('buildBar', Math.round((i / files.length) * 100));
+      try { batch.push(await buildOne(files[i], usedRefs, ig)); }
+      catch(e){ console.warn('건너뜀', files[i].name, e); }
+      await new Promise(r => setTimeout(r, 0));
+    }
+    setBar('buildBar', 100);
+    assignDates($('bStart').value, takenDates);
+    renderBatch();
+    show(bmsg(), 'ok', batch.length + '장을 만들었습니다. 아래에서 확인하고 고쳐주세요.');
+  }catch(e){ show(bmsg(), 'err', '실패: ' + (e.code || e.message)); }
+  finally{ $('btnBuild').disabled = false; setTimeout(() => { $('buildBar').style.display='none'; }, 800); }
+};
+
+function renderBatch(){
+  if (!batch.length){ $('batchList').innerHTML = '<div class="empty">아직 만든 카드가 없습니다.</div>'; $('btnPubAll').disabled = true; $('pubSummary').textContent='—'; return; }
+  $('batchList').innerHTML = batch.map((it, i) => {
+    const v = VERSES.find(x => x.ref === it.ref);
+    const opts = it.ranked.map((x, k) =>
+      '<option value="' + x.v.ref + '"' + (x.v.ref === it.ref ? ' selected' : '') + '>' +
+      (k < 5 && x.s > 0 ? '★ ' : '') + x.v.ref + ' — ' + x.v.text.slice(0, 26) + '…</option>').join('');
+    return '<div class="brow' + (it.off ? ' off' : '') + '" data-i="' + i + '">' +
+      '<img src="' + it.thumb + '" data-zoom="' + i + '" loading="lazy">' +
+      '<div>' +
+        '<div class="bhead"><b>' + (it.date || '제외됨') + '</b>' +
+          '<button class="ghost" data-act="off" data-i="' + i + '">' + (it.off ? '다시 넣기' : '제외') + '</button></div>' +
+        '<div class="bmood">' + it.desc + (it.hour !== null ? ' · 촬영 ' + String(it.hour).padStart(2,'0') + '시' : '') + ' · ' + it.file.name + '</div>' +
+        '<div class="bsel"><select data-act="verse" data-i="' + i + '">' + opts + '</select>' +
+        '<select data-act="style" data-i="' + i + '">' + styleOpts(it.style) + '</select></div>' +
+        '<div class="btxt">' + v.text + ' <span style="color:#a09a8c">(' + v.ref + ')</span></div>' +
+      '</div></div>';
+  }).join('');
+  const live = batch.filter(x => !x.off).length;
+  $('pubSummary').innerHTML = '발행할 카드 <b>' + live + '장</b>' +
+    (live ? ' · ' + batch.find(x=>!x.off).date + ' 부터 ' + [...batch].reverse().find(x=>!x.off).date + ' 까지' : '');
+  $('btnPubAll').disabled = live === 0;
+}
+
+$('batchList').onclick = async e => {
+  const zi = e.target.dataset.zoom;
+  if (zi !== undefined){ $('zoomImg').src = batch[zi].thumb; $('zoom').classList.add('on'); return; }
+  const b = e.target.closest('button[data-act="off"]'); if (!b) return;
+  const it = batch[b.dataset.i];
+  it.off = !it.off;
+  assignDates($('bStart').value, takenDates);
+  renderBatch();
+};
+$('zoom').onclick = () => $('zoom').classList.remove('on');
+
+$('batchList').onchange = async e => {
+  const s = e.target.closest('select[data-act]'); if (!s) return;
+  const it = batch[s.dataset.i];
+  if (s.dataset.act === 'verse') it.ref = s.value; else it.style = s.value;
+  s.disabled = true;
+  await paint(it, $('bIg').value);
+  renderBatch();
+};
+
+$('btnPubAll').onclick = async () => {
+  const live = batch.filter(x => !x.off && x.date);
+  if (!live.length) return;
+  if (!confirm(live.length + '장을 ' + live[0].date + ' 부터 차례로 발행합니다. 계속할까요?')) return;
+  $('btnPubAll').disabled = true; $('btnBuild').disabled = true;
+  let done = 0;
+  try{
+    for (const it of live){
+      show(bmsg(), 'info', '올리는 중… ' + (done+1) + ' / ' + live.length + '  (' + it.date + ')');
+      setBar('pubBar', Math.round((done / live.length) * 100));
+      const v = VERSES.find(x => x.ref === it.ref);
+      await publishCard(it.date, it.blob, it.img, {
+        verseKr: v.text, refKr: v.ref, verseEn: '', refEn: '',
+        moods: v.tags, style: it.style,
+        credit: 'bible_film', igHandle: $('bIg').value, year: Number(it.date.slice(0,4)),
+        createdAt: serverTimestamp()
+      });
+      done++;
+    }
+    setBar('pubBar', 100);
+    show(bmsg(), 'ok', done + '장을 발행했습니다. ‘발행 목록’ 탭에서 확인하실 수 있어요.');
+    batch.forEach(it => { if (it.thumb) URL.revokeObjectURL(it.thumb); });
+    batch = []; renderBatch(); $('bPhotos').value = '';
+    loadCards();
+  }catch(e){
+    show(bmsg(), 'err', done + '장까지 발행했고 그 다음에서 멈췄습니다: ' + (e.code || e.message) + ' — 다시 시도하면 남은 것부터 이어집니다.');
+    batch = batch.filter(it => !live.slice(0, done).includes(it));
+    const u = await usedDatesAndRefs(); takenDates = u.dates;
+    assignDates($('bStart').value, takenDates);
+    renderBatch();
+  }finally{
+    $('btnBuild').disabled = false;
+    setTimeout(() => { $('pubBar').style.display='none'; }, 800);
+  }
+};
+
+/* ---------------- 아티스트 소식 ---------------- */
+$('btnArtist').onclick = async () => {
+  const m = $('artistMsg');
+  if (!$('aTitle').value.trim()) return show(m, 'err', '제목을 입력해 주세요.');
+  try {
+    await addDoc(collection(db, 'artists'), {
+      title: $('aTitle').value.trim(), subtitle: $('aSub').value.trim(),
+      linkUrl: $('aLink').value.trim(), startDate: $('aStart').value, endDate: $('aEnd').value,
+      active: true, createdAt: serverTimestamp()
+    });
+    show(m, 'ok', '소식이 등록되었습니다.');
+    ['aTitle','aSub','aLink'].forEach(i => $(i).value = '');
+    loadArtists();
+  } catch (e) { show(m, 'err', '실패: ' + (e.code || e.message)); }
+};
+async function loadArtists() {
+  try {
+    const snap = await getDocs(query(collection(db, 'artists'), orderBy('createdAt', 'desc'), limit(40)));
+    if (snap.empty) { $('artistList').innerHTML = '<div class="empty">등록된 소식이 없습니다.</div>'; return; }
+    $('artistList').innerHTML = '';
+    snap.docs.forEach(d => {
+      const a = d.data();
+      const el = document.createElement('div'); el.className = 'item';
+      el.innerHTML = '<div class="top"><b>' + a.title + '</b><span style="color:#a09a8c;font-size:12px">' +
+        (a.startDate || '') + ' ~ ' + (a.endDate || '') + (a.active ? '' : ' · 숨김') + '</span></div>' +
+        '<div>' + (a.subtitle || '') + '</div>';
+      const acts = document.createElement('div'); acts.className = 'acts';
+      const tg = document.createElement('button'); tg.className = 'ghost'; tg.textContent = a.active ? '숨기기' : '다시 노출';
+      tg.onclick = async () => { await updateDoc(doc(db,'artists',d.id), { active: !a.active }); loadArtists(); };
+      const del = document.createElement('button'); del.className = 'warn'; del.textContent = '삭제';
+      del.onclick = async () => { await deleteDoc(doc(db,'artists',d.id)); loadArtists(); };
+      acts.append(tg, del); el.appendChild(acts);
+      $('artistList').appendChild(el);
+    });
+  } catch (e) { $('artistList').innerHTML = '<div class="empty">불러오기 실패: ' + (e.code||e.message) + '</div>'; }
+}
+
+/* ---------------- 신고 관리 ---------------- */
+function shareItem(d, s, showReport) {
+  const el = document.createElement('div'); el.className = 'item';
+  el.innerHTML = '<div class="top"><b>' + (s.nickname || '이름없음') + '</b>' +
+    '<span style="color:#a09a8c;font-size:12px">' + (s.date || '') + (s.hidden ? ' · 숨김 처리됨' : '') + '</span></div>' +
+    '<div>' + (s.text || '').replace(/[<>]/g, '') + '</div>' +
+    (showReport ? '<div style="color:#c25b40;font-size:12px;margin-top:6px">신고 사유: ' + (showReport) + '</div>' : '');
+  const acts = document.createElement('div'); acts.className = 'acts';
+  const hide = document.createElement('button'); hide.className = 'ghost';
+  hide.textContent = s.hidden ? '숨김 해제' : '숨기기';
+  hide.onclick = async () => { await updateDoc(doc(db,'shares',d.id), { hidden: !s.hidden }); loadReports(); };
+  const del = document.createElement('button'); del.className = 'warn'; del.textContent = '글 삭제';
+  del.onclick = async () => { await deleteDoc(doc(db,'shares',d.id)); loadReports(); };
+  acts.append(hide, del); el.appendChild(acts);
+  return el;
+}
+async function loadReports() {
+  try {
+    const rs = await getDocs(query(collection(db, 'reports'), orderBy('createdAt', 'desc'), limit(50)));
+    $('repList').innerHTML = '';
+    if (rs.empty) $('repList').innerHTML = '<div class="empty">접수된 신고가 없습니다.</div>';
+    for (const r of rs.docs) {
+      const rep = r.data();
+      const sd = await getDoc(doc(db, 'shares', rep.shareId));
+      if (!sd.exists()) { $('repList').appendChild(Object.assign(document.createElement('div'), { className:'item', textContent:'(이미 삭제된 글에 대한 신고)' })); continue; }
+      const el = shareItem(sd, sd.data(), rep.reason || '기타');
+      const ig = document.createElement('button'); ig.className = 'ghost'; ig.textContent = '신고 무시';
+      ig.onclick = async () => { await deleteDoc(doc(db,'reports',r.id)); loadReports(); };
+      el.querySelector('.acts').appendChild(ig);
+      $('repList').appendChild(el);
+    }
+  } catch (e) { $('repList').innerHTML = '<div class="empty">불러오기 실패: ' + (e.code||e.message) + '</div>'; }
+  try {
+    const ss = await getDocs(query(collection(db, 'shares'), orderBy('createdAt', 'desc'), limit(30)));
+    $('shareList').innerHTML = '';
+    if (ss.empty) { $('shareList').innerHTML = '<div class="empty">아직 나눔글이 없습니다.</div>'; return; }
+    ss.docs.forEach(d => $('shareList').appendChild(shareItem(d, d.data(), null)));
+  } catch (e) { $('shareList').innerHTML = '<div class="empty">불러오기 실패: ' + (e.code||e.message) + '</div>'; }
+}
+</script>
+</body>
+</html>
