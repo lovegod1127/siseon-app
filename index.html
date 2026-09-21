@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<title>시선 — 하루 한 장, 하루 한 말씀</title>
+<meta name="description" content="하루 한 장, 하루 한 말씀">
+<meta name="theme-color" content="#F2EFE8">
+<link rel="canonical" href="https://sajinmalsseum-full.vercel.app/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="시선">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="시선 — 하루 한 장, 하루 한 말씀">
+<meta property="og:description" content="매일 아침, 사진 한 장과 말씀 한 구절이 도착합니다.">
+<meta property="og:url" content="https://sajinmalsseum-full.vercel.app/">
+<meta property="og:image" content="https://sajinmalsseum-full.vercel.app/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="시선 — 하루 한 장, 하루 한 말씀">
+<meta name="twitter:description" content="매일 아침, 사진 한 장과 말씀 한 구절이 도착합니다.">
+<meta name="twitter:image" content="https://sajinmalsseum-full.vercel.app/og.jpg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="시선">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#F2EFE8;--ink:#1F1F1C;--sub:#7A766D;--accent:#2F4A45;--accent2:#344741;--line:#E3DED3;--panel:#F9F8F4;--tile:#E9E5DC}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overscroll-behavior-y:none}
+  body{background:var(--bg);color:var(--ink);font-family:'Apple SD Gothic Neo','Pretendard','Malgun Gothic',sans-serif;
+    display:flex;flex-direction:column;max-width:520px;margin:0 auto;line-height:1.6}
+  .serif{font-family:'Gowun Batang',serif}
+  .page{flex:1;overflow-y:auto;display:none;flex-direction:column;padding-bottom:14px;-webkit-overflow-scrolling:touch}
+  .page.on{display:flex}
+  .page>*{flex-shrink:0}
+  svg.ic{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;display:block}
+  svg.ic.f{fill:currentColor;stroke:none}
+
+  /* 상단 */
+  .topbar{padding:calc(env(safe-area-inset-top) + 16px) 20px 10px;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+  .topbar .logo{font-family:'Gowun Batang',serif;font-size:24px;font-weight:700;letter-spacing:1px;color:var(--ink)}
+  .topbar .tagline{font-family:'Gowun Batang',serif;font-size:12.5px;color:var(--sub);letter-spacing:-.2px}
+  .topbar.big{flex-direction:column;align-items:flex-start;gap:0;padding-top:calc(env(safe-area-inset-top) + 22px);position:relative}
+  .topbar.big .logo{font-size:30px;letter-spacing:0}
+  .topbar.big .sub{font-size:13px;color:var(--sub);margin-top:2px}
+  .topbar.big .tool{position:absolute;right:18px;top:calc(env(safe-area-inset-top) + 26px);width:40px;height:40px;border-radius:12px;
+    border:1px solid var(--line);background:var(--panel);display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer}
+  .topbar.big .tool svg{width:20px;height:20px}
+
+  .artist{margin:4px 18px 8px;background:var(--accent);border-radius:14px;
+    padding:12px 14px;color:#fff;display:flex;gap:11px;align-items:center;cursor:pointer;text-decoration:none}
+  .artist .tag{font-size:10px;background:rgba(255,255,255,.18);border-radius:6px;padding:2px 7px;white-space:nowrap}
+  .artist .t{font-size:12.5px;font-weight:700;line-height:1.45;flex:1}
+  .artist .t small{display:block;font-weight:400;font-size:11px;opacity:.85}
+
+  /* 오늘의 카드 — 화면 가득 */
+  .cardwrap{margin:0;background:var(--tile);min-height:200px;position:relative}
+  .cardwrap img{width:100%;display:block;aspect-ratio:4/5;object-fit:cover}
+  .waiting{padding:110px 24px;text-align:center;color:var(--sub);font-size:14px;font-family:'Gowun Batang',serif}
+  .cardmeta{display:flex;justify-content:space-between;align-items:center;padding:12px 20px 2px;font-size:13px;color:var(--ink)}
+  .cardmeta .ref{font-family:'Gowun Batang',serif}
+  .cardmeta .date{color:var(--sub)}
+
+  /* 버튼 줄 */
+  .actions{display:flex;gap:10px;padding:12px 18px 4px}
+  .abtn{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:14px;height:50px;display:flex;align-items:center;justify-content:center;gap:7px;
+    font-size:14px;font-weight:700;color:var(--ink);cursor:pointer;font-family:inherit;transition:transform .12s,background .2s,color .2s,border-color .2s}
+  .abtn:active{transform:scale(.96)}
+  .abtn svg{width:20px;height:20px}
+  .abtn.amen{background:var(--accent2);color:#F5F3EC;border-color:var(--accent2)}
+  .abtn.amen.off{background:var(--panel);color:var(--ink);border-color:var(--line)}
+  .hint{padding:9px 24px 6px;font-size:11.5px;color:#a39d8f;text-align:center}
+
+  .rule{margin:8px 18px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 13px;font-size:12px;color:#4e5b4e}
+  .minicard{margin:4px 18px 4px;border-radius:14px;overflow:hidden;position:relative;background:var(--tile)}
+  .minicard img{width:100%;height:280px;object-fit:cover;object-position:top;display:block}
+  .minicard .lb{position:absolute;left:0;right:0;bottom:0;padding:22px 14px 9px;font-size:11.5px;font-weight:700;color:#fff;
+    background:linear-gradient(transparent,rgba(20,25,20,.6));display:flex;justify-content:space-between}
+  .write{margin:8px 18px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+  .write textarea{width:100%;border:none;outline:none;resize:none;font-family:inherit;font-size:14px;line-height:1.7;min-height:64px;color:var(--ink);background:transparent}
+  .write .foot{display:flex;gap:8px;align-items:center;margin-top:8px;border-top:1px solid var(--line);padding-top:9px}
+  .write input{flex:1;border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-family:inherit;font-size:13px;min-width:0;background:#fff}
+  .write button{border:none;background:var(--accent);color:#fff;border-radius:9px;padding:8px 15px;font-size:13px;font-family:inherit;cursor:pointer}
+  .write button:disabled{opacity:.45}
+  .share{margin:8px 18px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+  .share.mine{border-color:#c6d2c0}
+  .share .who{font-size:12px;font-weight:800;color:#4e5b4e;display:flex;justify-content:space-between;align-items:center}
+  .share .who .more{color:#c0b9a8;cursor:pointer;font-size:16px;letter-spacing:1px;padding:0 4px}
+  .share .txt{font-size:13.5px;color:#454036;margin-top:5px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+  .share .pray{margin-top:9px;font-size:12px;color:var(--accent);font-weight:700;cursor:pointer;display:inline-block}
+  .share .pray.off{color:#b0aa9c}
+
+  /* 지난 말씀 */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:10px 18px 24px}
+  .grid .cell{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:4/5;background:var(--tile);cursor:pointer}
+  .grid img{width:100%;height:100%;object-fit:cover;display:block}
+
+  /* 설정 */
+  .setcard{margin:10px 18px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:6px 16px}
+  .setrow{display:flex;justify-content:space-between;align-items:center;padding:13px 2px;font-size:14px}
+  .setrow+.setrow{border-top:1px solid var(--line)}
+  .setrow small{display:block;color:var(--sub);font-size:11.5px;margin-top:3px}
+  .setrow input[type=time]{font-family:inherit;font-size:19px;font-weight:800;color:var(--accent);border:none;background:transparent;text-align:right}
+  .toggle{width:48px;height:28px;border-radius:14px;background:var(--accent);position:relative;cursor:pointer;flex:none;transition:.15s}
+  .toggle::after{content:'';position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.15s}
+  .toggle.off{background:#d8d2c6}
+  .toggle.off::after{right:calc(100% - 25px)}
+
+  /* 아래 탭 */
+  .tabbar{display:flex;background:var(--bg);border-top:1px solid var(--line);padding:10px 0 calc(env(safe-area-inset-bottom) + 12px);flex:none}
+  .tab{flex:1;text-align:center;font-size:10.5px;color:#8b877d;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+  .tab .ic{width:24px;height:24px}
+  .tab .ic.f{display:none}
+  .tab.on{color:var(--ink);font-weight:800}
+  .tab.on .ic.o{display:none}
+  .tab.on .ic.f{display:block}
+
+  .sheet{position:fixed;inset:0;background:rgba(30,28,24,.45);display:none;align-items:flex-end;justify-content:center;z-index:80}
+  .sheet.on{display:flex}
+  .sheet .box{background:var(--panel);width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:14px 18px calc(env(safe-area-inset-bottom) + 18px)}
+  .sheet .box h4{font-size:13px;color:var(--sub);font-weight:400;padding:6px 4px 10px}
+  .sheet .box div.opt{padding:14px 6px;font-size:15px;border-top:1px solid var(--line);cursor:pointer}
+  .sheet .box div.opt.warn{color:#c25b40}
+  .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);background:rgba(31,31,28,.94);color:#fff;
+    padding:11px 20px;border-radius:22px;font-size:13px;opacity:0;transition:.25s;z-index:90;pointer-events:none;white-space:nowrap}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .install{margin:6px 18px 8px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:12.5px;color:#4c483e;display:none;line-height:1.7}
+  .install.on{display:block}
+  .install b{color:var(--ink)}
+  .install.warn{border-color:#dcc7a8;background:#fdf7ee}
+  .install .go{display:inline-block;margin-top:8px;background:var(--accent);color:#fff;border-radius:9px;
+    padding:7px 14px;font-size:12.5px;border:none;font-family:inherit;cursor:pointer}
+
+  /* ---------- 움직임 ---------- */
+  @keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .page.on{animation:pageIn .3s cubic-bezier(.22,.9,.3,1)}
+  @keyframes cardIn{from{opacity:0}to{opacity:1}}
+  .cardwrap img.in{animation:cardIn .5s ease-out}
+  @keyframes tabPop{0%{transform:scale(1)}45%{transform:scale(1.18)}100%{transform:scale(1)}}
+  .tab.on .ic.f{animation:tabPop .32s cubic-bezier(.34,1.56,.64,1)}
+
+  /* 아멘 버튼 애니메이션 */
+  .abtn.amen{position:relative;overflow:visible}
+  @keyframes amenBounce{0%{transform:scale(1)}30%{transform:scale(.9)}60%{transform:scale(1.06)}100%{transform:scale(1)}}
+  .abtn.amen.boing{animation:amenBounce .45s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes amenRing{from{opacity:.5;transform:translate(-50%,-50%) scale(.5)}to{opacity:0;transform:translate(-50%,-50%) scale(2.1)}}
+  .amen-ring{position:absolute;left:50%;top:50%;width:70px;height:70px;border-radius:50%;
+    border:2px solid var(--accent);pointer-events:none;animation:amenRing .6s ease-out forwards}
+  @keyframes amenFloat{
+    0%{opacity:0;transform:translate(-50%,0) scale(.5) rotate(var(--rot))}
+    12%{opacity:1}
+    100%{opacity:0;transform:translate(calc(-50% + var(--dx)), var(--dy)) scale(var(--sc)) rotate(var(--rot))}
+  }
+  .amen-p{position:absolute;left:50%;top:4px;font-size:18px;pointer-events:none;
+    animation:amenFloat var(--dur) cubic-bezier(.2,.6,.4,1) forwards;will-change:transform,opacity}
+  @keyframes labelPop{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
+  #amenLabel{display:inline-block}
+  #amenLabel.pop{animation:labelPop .3s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes prayPop{0%{transform:scale(1)}45%{transform:scale(1.28)}100%{transform:scale(1)}}
+  .share .pray.pop{animation:prayPop .3s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes shimmer{from{background-position:-300px 0}to{background-position:300px 0}}
+  .waiting.sk{background:linear-gradient(90deg,#e7e2d6 0%,#f3efe6 45%,#e7e2d6 90%);
+    background-size:600px 100%;animation:shimmer 1.5s linear infinite;color:#8a857a}
+</style>
+</head>
+<body>
+
+<!-- 아이콘 세트 (24px 격자 · 선 1.6 · 둥근 끝) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="10.5" r="3.2"/><path d="M12 3.5v1.6M6.6 6.2l1.1 1.1M17.4 6.2l-1.1 1.1M4.5 16.5h15M8 20h8"/></symbol>
+  <symbol id="i-sun-f" viewBox="0 0 24 24"><circle cx="12" cy="10.5" r="3.6"/><path d="M12 3.2v2M6.3 5.9l1.4 1.4M17.7 5.9l-1.4 1.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><rect x="4" y="15.7" width="16" height="1.7" rx=".85"/><rect x="7.5" y="19.2" width="9" height="1.7" rx=".85"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4.5 6a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6.5L7 19.5V16H6.5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-chat-f" viewBox="0 0 24 24"><path d="M4.5 6a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6.5L7 19.5V16H6.5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.8"/></symbol>
+  <symbol id="i-grid-f" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7.2" height="7.2" rx="1.9"/><rect x="13.3" y="3.5" width="7.2" height="7.2" rx="1.9"/><rect x="3.5" y="13.3" width="7.2" height="7.2" rx="1.9"/><rect x="13.3" y="13.3" width="7.2" height="7.2" rx="1.9"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6.5 16.5v-5.5a5.5 5.5 0 0 1 11 0v5.5l1.5 1.8h-14z"/><path d="M10.2 20.5a1.9 1.9 0 0 0 3.6 0"/></symbol>
+  <symbol id="i-bell-f" viewBox="0 0 24 24"><path d="M6.5 16.5v-5.5a5.5 5.5 0 0 1 11 0v5.5l1.5 1.8h-14z"/><path d="M10.2 20.5a1.9 1.9 0 0 0 3.6 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></symbol>
+  <symbol id="i-pray" viewBox="0 0 24 24"><path d="M12 3.2c-1.5 2.1-3.9 4.6-4.4 8.1-.3 2.2.3 4.2 1.5 6.2L9.6 21M12 3.2c1.5 2.1 3.9 4.6 4.4 8.1.3 2.2-.3 4.2-1.5 6.2l-.5 3.5"/><path d="M12 3.2v6.3M12 12.6v8.4M9.1 17.5c-1.6-.4-2.9-1.7-3.6-3.4M14.9 17.5c1.6-.4 2.9-1.7 3.6-3.4"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 3.5v11M8.3 7.2 12 3.5l3.7 3.7M5.5 12.5v6a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3.5v11M8.3 10.8l3.7 3.7 3.7-3.7M4.5 19.5h15"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4.5 19.5l.9-3.6L15.6 5.7a1.6 1.6 0 0 1 2.3 0l.4.4a1.6 1.6 0 0 1 0 2.3L8.1 18.6z"/><path d="M14.3 7l2.7 2.7"/></symbol>
+  <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6.5 4h11v16l-5.5-3.8L6.5 20z"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 10h16M8.5 3.5v3.5M15.5 3.5v3.5"/></symbol>
+  <symbol id="i-plus-sq" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8.5v7M8.5 12h7"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 8.5h16M4 15.5h16"/><circle cx="9" cy="8.5" r="1.8" fill="var(--bg)"/><circle cx="15" cy="15.5" r="1.8" fill="var(--bg)"/></symbol>
+</svg>
+
+<!-- 오늘 -->
+<div class="page on" id="p-today">
+  <div class="topbar">
+    <div class="logo">시선</div>
+    <div class="tagline">하루 한 장, 하루 한 말씀</div>
+  </div>
+  <a class="artist" id="artistBanner" style="display:none" target="_blank" rel="noopener">
+    <span class="tag">아티스트</span>
+    <div class="t" id="artistText"></div>
+    <span>›</span>
+  </a>
+  <div class="install" id="installTip"></div>
+  <div class="cardwrap" id="cardWrap"><div class="waiting sk">오늘의 한 장을 불러오는 중…</div></div>
+  <div class="cardmeta"><span class="ref" id="cardRef"></span><span class="date" id="todayLabel"></span></div>
+  <div class="actions">
+    <button class="abtn amen off" id="btnAmen"><svg class="ic"><use href="#i-pray"/></svg><span id="amenLabel">아멘</span></button>
+    <button class="abtn" id="btnShare"><svg class="ic"><use href="#i-share"/></svg>공유</button>
+    <button class="abtn" id="btnSave"><svg class="ic"><use href="#i-down"/></svg>저장</button>
+  </div>
+  <div class="hint" id="credit"></div>
+</div>
+
+<!-- 나눔 -->
+<div class="page" id="p-share">
+  <div class="topbar big"><div class="logo">나눔</div><div class="sub" id="shareDate"></div></div>
+  <div class="minicard" id="miniCard" style="display:none">
+    <img id="miniImg" alt="오늘의 카드">
+    <div class="lb"><span>오늘의 한 장</span><span id="miniRef"></span></div>
+  </div>
+  <div class="rule">오늘 말씀에 대한 <b>내 글 하나</b>만 남길 수 있어요. 답글·댓글은 없습니다.</div>
+  <div id="myShareBox"></div>
+  <div id="shareList"></div>
+</div>
+
+<!-- 지난 말씀 -->
+<div class="page" id="p-archive">
+  <div class="topbar big">
+    <div class="logo">지난 말씀</div><div class="sub" id="archiveSub">&nbsp;</div>
+    <div class="tool" id="btnMonth" title="달 고르기"><svg class="ic"><use href="#i-calendar"/></svg></div>
+  </div>
+  <div class="grid" id="archiveGrid"></div>
+</div>
+
+<!-- 알림 -->
+<div class="page" id="p-alarm">
+  <div class="topbar big"><div class="logo">알림</div><div class="sub">아침에 오늘의 한 장이 도착해요</div></div>
+  <div class="setcard">
+    <div class="setrow">
+      <div>아침 말씀 알람<small>매일 아침 오늘의 말씀을 알려드려요</small></div>
+      <div class="toggle" id="tgAlarm"></div>
+    </div>
+    <div class="setrow"><div>알람 시간<small>새벽 4시 ~ 오전 11시 30분 사이</small></div><input type="time" id="alarmTime" value="06:30" min="04:00" max="11:30" step="600"></div>
+  </div>
+  <div class="setcard">
+    <div class="setrow">
+      <div>아티스트 소식 알림<small>크리스찬 아티스트의 공연·전시 소식</small></div>
+      <div class="toggle" id="tgArtist"></div>
+    </div>
+  </div>
+  <div class="rule" style="background:#fdf7ee;color:#7a6748;border-color:#ecdcc2">아침 알림은 <b>준비 중</b>입니다. 지금 설정해두시면 준비되는 대로 이 시간에 보내드려요.</div>
+  <div class="hint" style="text-align:left;padding:4px 26px;line-height:1.7">
+    · 알림이 시작되면 <b>홈 화면에 추가</b>한 기기에서 받으실 수 있어요.<br>
+    · 사진: 채수호 · 말씀: 개역한글<br>
+    · 문의: lovegod1127@gmail.com<br>· <a href="/about/" style="color:var(--accent)">앱 소개</a> · <a href="/privacy.html" style="color:var(--accent)">개인정보처리방침</a>
+  </div>
+</div>
+
+<div class="tabbar">
+  <div class="tab on" data-p="p-today"><svg class="ic o"><use href="#i-sun"/></svg><svg class="ic f"><use href="#i-sun-f"/></svg>오늘</div>
+  <div class="tab" data-p="p-share"><svg class="ic o"><use href="#i-chat"/></svg><svg class="ic f"><use href="#i-chat-f"/></svg>나눔</div>
+  <div class="tab" data-p="p-archive"><svg class="ic o"><use href="#i-grid"/></svg><svg class="ic f"><use href="#i-grid-f"/></svg>지난 말씀</div>
+  <div class="tab" data-p="p-alarm"><svg class="ic o"><use href="#i-bell"/></svg><svg class="ic f"><use href="#i-bell-f"/></svg>알림</div>
+</div>
+
+<div class="sheet" id="sheet"><div class="box" id="sheetBox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getMessaging, getToken, onMessage, isSupported }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, updateDoc, collection, addDoc,
+         query, where, orderBy, limit, getDocs, getCountFromServer, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCuYS1eHvykRe5UKgBM_J1Xq2YxSEf7mdM",
+  authDomain: "photo-and-bible.firebaseapp.com",
+  projectId: "photo-and-bible",
+  storageBucket: "photo-and-bible.firebasestorage.app",
+  messagingSenderId: "51933715720",
+  appId: "1:51933715720:web:017d6a7b10eef69b3320bd"
+};
+const fb = initializeApp(firebaseConfig);
+const auth = getAuth(fb);
+const db = getFirestore(fb);
+const VAPID = 'BHpMYsuSOt_6qNoHm51ErIf5mjhJH-_9ObvqS2RIKRaIgTF_rQNOHTfxBcbsDsqGP6czJVUXbqvVbMCwe1Ud9pU';
+
+/* ─────────────────────────────────────────────
+   아침 알림 켜기/끄기 스위치
+   나중에 알림을 시작할 때 아래 false 를 true 로만 바꾸면 됩니다.
+   (앱 코드·발송 서버는 그대로 준비되어 있습니다)
+   ───────────────────────────────────────────── */
+const PUSH_ENABLED = false;
+
+const $ = id => document.getElementById(id);
+let uid = null, card = null, cardDate = null;
+
+/* 한국 시간 기준 날짜 */
+const kst = () => new Date(Date.now() + 9*3600*1000);
+const todayStr = () => kst().toISOString().slice(0,10);
+const DAYS = ['일','월','화','수','목','금','토'];
+function labelOf(ds){
+  const [y,m,d] = ds.split('-').map(Number);
+  const w = new Date(Date.UTC(y, m-1, d)).getUTCDay();
+  return m + '월 ' + d + '일 ' + (w === 0 ? '주일' : DAYS[w] + '요일');
+}
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('on'), 2000);
+}
+function openSheet(title, opts){
+  $('sheetBox').innerHTML = '<h4>' + title + '</h4>';
+  opts.forEach(o => {
+    const el = document.createElement('div');
+    el.className = 'opt' + (o.warn ? ' warn' : '');
+    el.textContent = o.label;
+    el.onclick = () => { $('sheet').classList.remove('on'); o.run && o.run(); };
+    $('sheetBox').appendChild(el);
+  });
+  $('sheet').classList.add('on');
+}
+$('sheet').onclick = e => { if (e.target.id === 'sheet') $('sheet').classList.remove('on'); };
+
+/* 탭 */
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+  t.classList.add('on');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  $(t.dataset.p).classList.add('on');
+  if (t.dataset.p === 'p-share') loadShares();
+  if (t.dataset.p === 'p-archive') loadArchive();
+});
+
+/* 로그인 (익명) */
+signInAnonymously(auth).catch(e => console.warn('auth', e.code));
+onAuthStateChanged(auth, u => {
+  if (!u) return;
+  uid = u.uid;
+  loadSettings();
+  refreshAmen();
+  if ($('p-share').classList.contains('on')) loadShares();
+});
+
+/* 오늘의 카드 */
+async function loadToday(){
+  $('todayLabel').textContent = labelOf(todayStr());
+  $('shareDate').textContent = labelOf(todayStr()) + ' · 오늘의 한 장';
+  try{
+    const t = todayStr();
+    let snap = await getDoc(doc(db, 'cards', t));
+    if (!snap.exists()){
+      const q = await getDocs(query(collection(db,'cards'), where('date','<=',t), orderBy('date','desc'), limit(1)));
+      if (!q.empty) snap = q.docs[0];
+    }
+    if (!snap || !snap.exists || !snap.exists()){
+      $('cardWrap').innerHTML = '<div class="waiting">오늘의 말씀을 준비하고 있습니다.<br>조금 뒤에 다시 열어주세요.</div>';
+      return;
+    }
+    card = snap.data(); cardDate = card.date || snap.id;
+    $('cardWrap').innerHTML = '<img id="cardImg" alt="오늘의 말씀">';
+    $('cardImg').onload = () => $('cardImg').classList.add('in');
+    $('cardImg').src = card.imageUrl;
+    $('cardRef').textContent = card.refKr || '';
+    $('todayLabel').textContent = labelOf(cardDate);
+    $('credit').textContent = '사진: ' + (card.photographer || '채수호') + ' · 말씀: 개역한글';
+    $('miniCard').style.display = 'block';
+    $('miniImg').src = card.imageUrl;
+    $('miniRef').textContent = card.refKr || '';
+    refreshAmen();
+  }catch(e){
+    $('cardWrap').innerHTML = '<div class="waiting">불러오지 못했습니다.<br>네트워크를 확인해 주세요.</div>';
+  }
+}
+loadToday();
+
+/* 아티스트 소식 배너 */
+(async () => {
+  try{
+    const q = await getDocs(query(collection(db,'artists'), where('active','==',true), limit(5)));
+    if (q.empty) return;
+    const a = q.docs[0].data();
+    $('artistText').innerHTML = a.title + (a.subtitle ? '<small>' + a.subtitle + '</small>' : '');
+    const el = $('artistBanner');
+    if (a.linkUrl) el.href = a.linkUrl; else el.removeAttribute('href');
+    el.style.display = 'flex';
+  }catch(e){}
+})();
+
+/* 아멘 */
+let amenN = 0, amenMine = false, amenBusy = false;
+function paintAmen(){
+  $('amenLabel').textContent = '아멘' + (amenN ? ' · ' + amenN : '');
+  $('btnAmen').classList.toggle('off', !amenMine);
+}
+async function refreshAmen(){
+  if (!cardDate) return;
+  try{
+    const c = await getCountFromServer(collection(db,'cards',cardDate,'amens'));
+    amenN = c.data().count;
+    if (uid) amenMine = (await getDoc(doc(db,'cards',cardDate,'amens',uid))).exists();
+    paintAmen();
+  }catch(e){}
+}
+/* 아멘 애니메이션 — 두 손 모으는 마음이 피어오르듯 */
+function amenBurst(){
+  const b = $('btnAmen');
+  b.classList.remove('boing'); void b.offsetWidth; b.classList.add('boing');
+  const ring = document.createElement('span');
+  ring.className = 'amen-ring'; b.appendChild(ring);
+  setTimeout(() => ring.remove(), 650);
+  const EM = ['🙏','✨','🕊️','🤍','🙏'];
+  for (let i = 0; i < 7; i++){
+    const s = document.createElement('span');
+    s.className = 'amen-p'; s.textContent = EM[i % EM.length];
+    s.style.setProperty('--dx', (Math.sin(i * 2.4) * 46 + (i % 2 ? 14 : -14)) + 'px');
+    s.style.setProperty('--dy', -(58 + (i % 3) * 26) + 'px');
+    s.style.setProperty('--sc', (0.9 + (i % 3) * 0.25).toFixed(2));
+    s.style.setProperty('--rot', ((i % 2 ? 1 : -1) * (6 + i * 3)) + 'deg');
+    s.style.setProperty('--dur', (620 + i * 90) + 'ms');
+    s.style.animationDelay = (i * 40) + 'ms';
+    b.appendChild(s);
+    setTimeout(() => s.remove(), 1400);
+  }
+  const lb = $('amenLabel');
+  lb.classList.remove('pop'); void lb.offsetWidth; lb.classList.add('pop');
+  if (navigator.vibrate) { try { navigator.vibrate(12); } catch(e){} }
+}
+$('btnAmen').onclick = async () => {
+  if (!uid || !cardDate) return toast('잠시 후 다시 눌러주세요');
+  if (amenBusy) return;
+  amenBusy = true;
+  const r = doc(db,'cards',cardDate,'amens',uid);
+  const was = amenMine;
+  // 화면 먼저, 서버는 그 다음 (누르는 맛)
+  amenMine = !was; amenN += amenMine ? 1 : -1; if (amenN < 0) amenN = 0;
+  paintAmen();
+  if (amenMine) amenBurst();
+  try{
+    if (was) { await deleteDoc(r); }
+    else { await setDoc(r, { at: serverTimestamp() }); }
+    refreshAmen();
+  }catch(e){
+    amenMine = was; amenN += amenMine ? 1 : -1; if (amenN < 0) amenN = 0;
+    paintAmen(); toast('처리하지 못했습니다');
+  }finally{ amenBusy = false; }
+};
+
+/* 공유 / 저장 */
+async function cardBlob(){
+  const res = await fetch(card.imageUrl);
+  if (!res.ok) throw new Error('fetch');
+  return await res.blob();
+}
+$('btnShare').onclick = async () => {
+  if (!card) return;
+  const text = (card.verseKr || '') + ' (' + (card.refKr || '') + ')';
+  try{
+    const blob = await cardBlob();
+    const file = new File([blob], '시선_' + cardDate + '.jpg', { type: 'image/jpeg' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], text });
+      return;
+    }
+  }catch(e){}
+  try{
+    if (navigator.share) { await navigator.share({ title: '시선', text, url: location.href }); return; }
+    await navigator.clipboard.writeText(text + '\n' + location.href);
+    toast('말씀을 복사했어요');
+  }catch(e){}
+};
+$('btnSave').onclick = async () => {
+  if (!card) return;
+  try{
+    const blob = await cardBlob();
+    const u = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = u; a.download = '시선_' + cardDate + '.jpg';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(u), 4000);
+    toast('저장했어요');
+  }catch(e){
+    window.open(card.imageUrl, '_blank');
+    toast('길게 눌러 이미지를 저장하세요');
+  }
+};
+
+/* 나눔 */
+const myId = () => todayStr() + '__' + uid;
+async function loadShares(){
+  if (!uid){ $('shareList').innerHTML = ''; return; }
+  const t = todayStr();
+  try{
+    const mine = await getDoc(doc(db,'shares', myId()));
+    $('myShareBox').innerHTML = '';
+    if (mine.exists()) $('myShareBox').appendChild(shareEl(mine.id, mine.data(), true));
+    else $('myShareBox').appendChild(writeBox());
+  }catch(e){ $('myShareBox').innerHTML = ''; $('myShareBox').appendChild(writeBox()); }
+  try{
+    const q = await getDocs(query(collection(db,'shares'),
+      where('date','==',t), where('hidden','==',false), limit(100)));
+    const rows = q.docs.filter(d => d.id !== myId())
+      .sort((a,b) => (b.data().createdAt?.seconds||0) - (a.data().createdAt?.seconds||0));
+    $('shareList').innerHTML = '';
+    if (!rows.length){
+      const e = document.createElement('div');
+      e.className = 'hint'; e.style.padding = '26px'; e.textContent = '아직 다른 나눔이 없어요. 첫 나눔을 남겨보세요.';
+      $('shareList').appendChild(e);
+    }
+    rows.forEach(d => $('shareList').appendChild(shareEl(d.id, d.data(), false)));
+  }catch(e){ $('shareList').innerHTML = ''; }
+}
+function writeBox(){
+  const box = document.createElement('div'); box.className = 'write';
+  box.innerHTML = '<textarea id="wText" maxlength="500" placeholder="오늘 말씀에 은혜받은 마음을 남겨보세요…"></textarea>' +
+    '<div class="foot"><input id="wName" maxlength="20" placeholder="표시할 이름"><button id="wSend">남기기</button></div>';
+  setTimeout(() => {
+    $('wName').value = localStorage.getItem('nick') || '';
+    $('wSend').onclick = async () => {
+      const text = $('wText').value.trim(), nick = ($('wName').value.trim() || '익명').slice(0,20);
+      if (!text) return toast('내용을 입력해 주세요');
+      if (!uid) return toast('잠시 후 다시 시도해 주세요');
+      $('wSend').disabled = true;
+      try{
+        await setDoc(doc(db,'shares', myId()), {
+          uid, nickname: nick, text, date: todayStr(), hidden: false, createdAt: serverTimestamp()
+        });
+        localStorage.setItem('nick', nick);
+        toast('나눔을 남겼어요');
+        loadShares();
+      }catch(e){ toast('남기지 못했습니다'); $('wSend').disabled = false; }
+    };
+  }, 0);
+  return box;
+}
+function shareEl(id, s, mine){
+  const el = document.createElement('div');
+  el.className = 'share' + (mine ? ' mine' : '');
+  const who = document.createElement('div'); who.className = 'who';
+  who.innerHTML = '<span>' + esc(s.nickname || '익명') + (mine ? ' <span style="color:#a09a8c;font-weight:400">· 내 나눔</span>' : '') + '</span>';
+  const more = document.createElement('span'); more.className = 'more'; more.textContent = '⋯';
+  more.onclick = () => mine
+    ? openSheet('내 나눔', [
+        { label: '수정하기', run: () => editShare(id, s) },
+        { label: '삭제하기', warn: true, run: async () => {
+            try{ await deleteDoc(doc(db,'shares',id)); toast('삭제했어요'); loadShares(); }catch(e){ toast('삭제하지 못했습니다'); } } }
+      ])
+    : openSheet('이 나눔을', [
+        { label: '🚨 신고하기 — 상업·후원 요청', run: () => report(id, '상업/후원 요청') },
+        { label: '🚨 신고하기 — 불쾌한 내용', run: () => report(id, '불쾌한 내용') },
+        { label: '🚨 신고하기 — 기타', run: () => report(id, '기타') }
+      ]);
+  who.appendChild(more);
+  const txt = document.createElement('div'); txt.className = 'txt'; txt.textContent = s.text || '';
+  const pray = document.createElement('div'); pray.className = 'pray off'; pray.textContent = '함께 아멘';
+  el.append(who, txt, pray);
+  (async () => {
+    try{
+      const c = await getCountFromServer(collection(db,'shares',id,'amens'));
+      let n = c.data().count;
+      let did = uid ? (await getDoc(doc(db,'shares',id,'amens',uid))).exists() : false;
+      const paint = () => { pray.textContent = '함께 아멘' + (n ? ' ' + n : ''); pray.classList.toggle('off', !did); };
+      paint();
+      pray.onclick = async () => {
+        if (!uid) return toast('잠시 후 다시 눌러주세요');
+        const r = doc(db,'shares',id,'amens',uid);
+        const was = did;
+        did = !was; let n2 = n + (did ? 1 : -1); if (n2 < 0) n2 = 0;
+        pray.textContent = '함께 아멘' + (n2 ? ' ' + n2 : '');
+        pray.classList.toggle('off', !did);
+        if (did){
+          pray.classList.remove('pop'); void pray.offsetWidth; pray.classList.add('pop');
+          if (navigator.vibrate) { try { navigator.vibrate(10); } catch(e){} }
+        }
+        try{
+          if (was){ await deleteDoc(r); } else { await setDoc(r, { at: serverTimestamp() }); }
+          const c2 = await getCountFromServer(collection(db,'shares',id,'amens'));
+          n = c2.data().count;
+          pray.textContent = '함께 아멘' + (n ? ' ' + n : '');
+        }catch(e){
+          did = was;
+          pray.textContent = '함께 아멘' + (n ? ' ' + n : '');
+          pray.classList.toggle('off', !did);
+          toast('처리하지 못했습니다');
+        }
+      };
+    }catch(e){}
+  })();
+  return el;
+}
+function editShare(id, s){
+  const box = writeBox();
+  $('myShareBox').innerHTML = ''; $('myShareBox').appendChild(box);
+  setTimeout(() => {
+    $('wText').value = s.text || ''; $('wName').value = s.nickname || '';
+    $('wSend').textContent = '수정하기';
+  }, 10);
+}
+async function report(shareId, reason){
+  if (!uid) return toast('잠시 후 다시 시도해 주세요');
+  try{
+    await addDoc(collection(db,'reports'), { shareId, reporterUid: uid, reason, createdAt: serverTimestamp() });
+    toast('신고했습니다. 운영자가 확인합니다');
+  }catch(e){ toast('신고하지 못했습니다'); }
+}
+function esc(s){ return String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+
+/* 지난 말씀 */
+
+let archiveDocs = null, archiveMonth = null;
+const MONTH_LABEL = ym => ym.slice(0,4) + '년 ' + Number(ym.slice(5,7)) + '월';
+async function loadArchive(){
+  if (archiveDocs) return;
+  try{
+    const q = await getDocs(query(collection(db,'cards'), where('date','<=',todayStr()), orderBy('date','desc'), limit(200)));
+    archiveDocs = q.docs.map(d => Object.assign({ id: d.id }, d.data()));
+    if (!archiveDocs.length){
+      $('archiveGrid').innerHTML = '<div class="hint" style="grid-column:1/-1;padding:40px">아직 지난 말씀이 없습니다.</div>';
+      $('archiveSub').textContent = '아직 없어요'; return;
+    }
+    archiveMonth = (archiveDocs[0].date || archiveDocs[0].id).slice(0,7);
+    paintArchive();
+    $('archiveGrid').onclick = e => {
+      const cell = e.target.closest('.cell'); if (cell) window.open(cell.dataset.u, '_blank');
+    };
+  }catch(e){ $('archiveGrid').innerHTML = '<div class="hint" style="grid-column:1/-1;padding:40px">불러오지 못했습니다.</div>'; }
+}
+function paintArchive(){
+  const list = archiveDocs.filter(c => (c.date || c.id).slice(0,7) === archiveMonth);
+  $('archiveSub').textContent = MONTH_LABEL(archiveMonth) + ' · ' + list.length + '장';
+  $('archiveGrid').innerHTML = list.map(c =>
+    '<div class="cell" data-u="' + c.imageUrl + '"><img loading="lazy" src="' + c.imageUrl + '" alt="' + (c.refKr || '') + '"></div>'
+  ).join('');
+}
+$('btnMonth').onclick = () => {
+  if (!archiveDocs || !archiveDocs.length) return;
+  const months = [...new Set(archiveDocs.map(c => (c.date || c.id).slice(0,7)))];
+  openSheet('달 고르기', months.map(m => ({
+    label: MONTH_LABEL(m) + (m === archiveMonth ? '  ✓' : ''),
+    run: () => { archiveMonth = m; paintArchive(); }
+  })));
+};
+
+/* 알림 설정 */
+function bindToggle(el, key, def){
+  const set = v => el.classList.toggle('off', !v);
+  let v = localStorage.getItem(key); v = v === null ? def : v === '1';
+  set(v);
+  el.onclick = () => { v = !v; set(v); localStorage.setItem(key, v ? '1' : '0'); saveSettings(); };
+  return () => v;
+}
+const getAlarm = bindToggle($('tgAlarm'), 'alarmOn', true);
+const getArtist = bindToggle($('tgArtist'), 'artistOn', true);
+$('alarmTime').value = localStorage.getItem('alarmTime') || '06:30';
+$('alarmTime').onchange = () => {
+  let v = $('alarmTime').value || '06:30';
+  if (v < '04:00') v = '04:00';
+  if (v > '11:30') v = '11:30';
+  $('alarmTime').value = v;
+  localStorage.setItem('alarmTime', v); saveSettings();
+};
+let fcmToken = null;
+
+/* 알림 권한 요청 → 토큰 발급 */
+async function enablePush(){
+  if (!PUSH_ENABLED) return null;      // 준비 중 — 알림 권한을 요청하지 않습니다
+  try{
+    if (!(await isSupported())) { toast('이 브라우저는 알림을 지원하지 않아요'); return null; }
+    if (!('Notification' in window)) return null;
+    let perm = Notification.permission;
+    if (perm === 'default') perm = await Notification.requestPermission();
+    if (perm !== 'granted'){
+      toast(perm === 'denied' ? '브라우저 설정에서 알림을 허용해 주세요' : '알림이 켜지지 않았어요');
+      return null;
+    }
+    const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/firebase-cloud-messaging-push-scope' });
+    const messaging = getMessaging(fb);
+    const t = await getToken(messaging, { vapidKey: VAPID, serviceWorkerRegistration: swReg });
+    if (t){
+      fcmToken = t;
+      onMessage(messaging, p => { const d = p.data || {}; toast(d.title || '오늘의 말씀이 도착했어요'); });
+      return t;
+    }
+  }catch(e){ console.warn('push', e); }
+  return null;
+}
+
+async function saveSettings(){
+  if (!uid) return;
+  const on = getAlarm() || getArtist();
+  if (on && !fcmToken) await enablePush();
+  const payload = {
+    alarmOn: getAlarm(), artistNewsOn: getArtist(), alarmTime: $('alarmTime').value,
+    tz: 'Asia/Seoul', updatedAt: serverTimestamp()
+  };
+  if (fcmToken) payload.fcmToken = fcmToken;
+  try{ await setDoc(doc(db,'users',uid), payload, { merge: true }); }catch(e){}
+}
+async function loadSettings(){
+  if (PUSH_ENABLED && typeof Notification !== 'undefined' && Notification.permission === 'granted'){
+    const t = await enablePush();
+    if (t){ try{ await setDoc(doc(db,'users',uid), { fcmToken: t, updatedAt: serverTimestamp() }, { merge: true }); }catch(e){} }
+  }
+  try{
+    const s = await getDoc(doc(db,'users',uid));
+    if (!s.exists()) { saveSettings(); return; }
+    const d = s.data();
+    if (d.alarmTime) { $('alarmTime').value = d.alarmTime; localStorage.setItem('alarmTime', d.alarmTime); }
+  }catch(e){}
+}
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+
+<script>
+/* 파이어베이스 로딩과 무관하게 항상 동작하는 안내 (일반 스크립트) */
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  window.toast = function(msg){
+    var t = $('toast'); if(!t) return;
+    t.textContent = msg; t.classList.add('on');
+    clearTimeout(t._h); t._h = setTimeout(function(){ t.classList.remove('on'); }, 2000);
+  };
+/* 홈 화면 추가 / 카카오톡 브라우저 안내 */
+const ua = navigator.userAgent || '';
+const isKakao = /KAKAOTALK/i.test(ua);
+const isIOS = /iPad|iPhone|iPod/.test(ua);
+const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt = e; paintTip();
+});
+function paintTip(){
+  const el = $('installTip');
+  if (standalone) { el.classList.remove('on'); return; }
+  if (isKakao){
+    el.className = 'install on warn';
+    el.innerHTML = '지금 <b>카카오톡 안에서</b> 보고 계세요. 홈 화면에 추가하려면 오른쪽 위 <b>⋯</b> → ' +
+      '<b>다른 브라우저로 열기</b>를 눌러주세요.' +
+      '<button class="go" id="copyLink">주소 복사하기</button>';
+    setTimeout(() => { const b = $('copyLink'); if (b) b.onclick = async (ev) => {
+      ev.stopPropagation();
+      try{ await navigator.clipboard.writeText(location.origin + '/'); window.toast('주소를 복사했어요'); }catch(e){}
+    }; }, 0);
+    return;
+  }
+  if (localStorage.getItem('tipShown')) return;
+  el.className = 'install on';
+  if (deferredPrompt){
+    el.innerHTML = '<b>홈 화면에 추가</b>하면 매일 아침 오늘의 한 장이 도착해요.<button class="go" id="doInstall">앱으로 설치하기</button>';
+    setTimeout(() => { const b = $('doInstall'); if (b) b.onclick = async (ev) => {
+      ev.stopPropagation(); deferredPrompt.prompt();
+      try{ await deferredPrompt.userChoice; }catch(e){}
+      deferredPrompt = null; el.classList.remove('on'); localStorage.setItem('tipShown','1');
+    }; }, 0);
+  } else if (isIOS){
+    el.innerHTML = '<b>매일 아침 받아보려면</b><br>아래 <b>공유 버튼</b>을 누르고 → <b>홈 화면에 추가</b>를 선택하세요';
+  } else {
+    el.innerHTML = '<b>매일 아침 받아보려면</b><br>브라우저 메뉴(⋮) → <b>홈 화면에 추가</b>를 선택하세요';
+  }
+  el.onclick = () => { el.classList.remove('on'); localStorage.setItem('tipShown','1'); };
+}
+paintTip();
+
+})();
+</script>
+</body>
+</html>
